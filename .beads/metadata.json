@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "kids_activity_scraper",
+  "project_id": "5347a6f3-c51c-4da7-bccb-f6e2bbce9e07"
+}
