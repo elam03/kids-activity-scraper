@@ -47,11 +47,7 @@ export async function scrapeInstagramAccount(
         directUrls: [targetUrl],
         resultsType: "posts",
         resultsLimit: limit,
-        onlyPostsNewerThan: `${newerThanDays} days`,
-        skipPinnedPosts: true,
-        proxy: {
-          useApifyProxy: true,
-        },
+        skipPinnedPosts: false
       }),
     }
   );
