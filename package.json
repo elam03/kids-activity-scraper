@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && mkdir -p .next/standalone/.next && cp -rf .next/static .next/standalone/.next/ && (cp -rf public .next/standalone/ || true)",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate"
