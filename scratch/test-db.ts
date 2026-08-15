@@ -1,12 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    }
-  }
-});
+import { prisma } from '../src/lib/prisma';
 
 async function main() {
   console.log("Cleaning database...");
