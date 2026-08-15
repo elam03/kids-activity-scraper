@@ -4,3 +4,10 @@
 *.db
 .beads-credential-key
 .beads/proxieddb/
+.env.local
+
+node_modules/
+.env
+.env*.local
+*.db-journal
+.next/
