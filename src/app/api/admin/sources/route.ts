@@ -7,6 +7,18 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const sources = await prisma.source.findMany({
+      include: {
+        events: {
+          select: {
+            id: true,
+            title: true,
+            rawPostUrl: true,
+            status: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
       orderBy: { handle: 'asc' },
     });
     return NextResponse.json({ sources });

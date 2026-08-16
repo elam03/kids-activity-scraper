@@ -9,6 +9,13 @@ interface Source {
   name: string;
   lastScrapedAt: string | null;
   isActive: boolean;
+  events?: Array<{
+    id: string;
+    title: string;
+    rawPostUrl: string;
+    status: string;
+    createdAt: string;
+  }>;
 }
 
 interface IngestReport {
@@ -25,6 +32,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [ingesting, setIngesting] = useState(false);
   const [scrapingSourceId, setScrapingSourceId] = useState<string | null>(null);
+  const [selectedSourceForHistory, setSelectedSourceForHistory] = useState<Source | null>(null);
   const [report, setReport] = useState<IngestReport[] | null>(null);
   const [statusLog, setStatusLog] = useState<string>('');
 
@@ -180,11 +188,31 @@ export default function AdminDashboard() {
                     <div>
                       <div className="font-semibold text-slate-200">{src.name}</div>
                       <div className="text-sm text-violet-400">@{src.handle}</div>
-                      <div className="text-xs text-slate-500 mt-1">
+                      <div className="flex flex-wrap gap-2 items-center mt-2">
+                        <span className="text-[10px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-slate-400">
+                          Scraped: {src.events?.length || 0}
+                        </span>
+                        <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-emerald-400">
+                          Approved: {src.events?.filter(e => e.status === 'approved').length || 0}
+                        </span>
+                        <span className="text-[10px] bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded text-red-400">
+                          Rejected: {src.events?.filter(e => e.status === 'rejected').length || 0}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-2">
                         Last scraped: {src.lastScrapedAt ? new Date(src.lastScrapedAt).toLocaleString() : 'Never'}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedSourceForHistory(src)}
+                        className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-slate-800 transition"
+                        title="View History"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                      </button>
                       <button
                         onClick={() => triggerSingleSourceIngest(src.id, src.handle)}
                         disabled={ingesting || scrapingSourceId !== null}
@@ -298,6 +326,70 @@ export default function AdminDashboard() {
         </div>
 
       </main>
+
+      {/* Scraped Post History Drawer/Modal */}
+      {selectedSourceForHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedSourceForHistory(null)}
+              className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-slate-100">
+                Scraped Post History: @{selectedSourceForHistory.handle}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">Showing posts scraped and parsed from this channel.</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+              {!selectedSourceForHistory.events || selectedSourceForHistory.events.length === 0 ? (
+                <div className="text-center py-20 text-slate-500 text-xs italic">
+                  No post scrape history found for this channel. Click 'Run Scrape' to fetch posts.
+                </div>
+              ) : (
+                <div className="overflow-hidden border border-slate-800 rounded-xl divide-y divide-slate-800 bg-slate-950/40">
+                  {selectedSourceForHistory.events.map((ev) => (
+                    <div key={ev.id} className="p-4 flex items-center justify-between gap-4 text-xs">
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="font-semibold text-slate-200 truncate pr-4">
+                          {ev.title}
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          Scraped: {new Date(ev.createdAt).toLocaleString()}
+                        </div>
+                        <a
+                          href={ev.rawPostUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[10px] text-violet-400 hover:underline inline-block truncate max-w-xs"
+                        >
+                          View Instagram Post
+                        </a>
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-semibold capitalize ${
+                        ev.status === 'approved'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : ev.status === 'rejected'
+                          ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      }`}>
+                        {ev.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
