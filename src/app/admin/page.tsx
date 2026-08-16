@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [newHandle, setNewHandle] = useState('');
   const [loading, setLoading] = useState(false);
   const [ingesting, setIngesting] = useState(false);
+  const [scrapingSourceId, setScrapingSourceId] = useState<string | null>(null);
   const [report, setReport] = useState<IngestReport[] | null>(null);
   const [statusLog, setStatusLog] = useState<string>('');
 
@@ -60,6 +61,33 @@ export default function AdminDashboard() {
       console.error('Failed to add source:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerSingleSourceIngest = async (sourceId: string, handle: string) => {
+    setScrapingSourceId(sourceId);
+    setReport(null);
+    setStatusLog(`Initializing single channel scrape for @${handle}...\nConnecting to Apify endpoint...\n`);
+
+    try {
+      const res = await fetch('/api/admin/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ handle }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setReport(data.report);
+        setStatusLog(`Single channel scrape for @${handle} completed successfully.\n`);
+        await fetchSources(); // refresh timestamps
+      } else {
+        setStatusLog(`Error: ${data.error || 'Ingestion failed'}\n`);
+      }
+    } catch (err) {
+      setStatusLog(`Connection failed: ${(err as Error).message}\n`);
+    } finally {
+      setScrapingSourceId(null);
     }
   };
 
@@ -156,15 +184,35 @@ export default function AdminDashboard() {
                         Last scraped: {src.lastScrapedAt ? new Date(src.lastScrapedAt).toLocaleString() : 'Never'}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDeleteSource(src.id)}
-                      className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition"
-                      title="Delete Source"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => triggerSingleSourceIngest(src.id, src.handle)}
+                        disabled={ingesting || scrapingSourceId !== null}
+                        className="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-xs font-semibold text-white transition active:scale-[0.98] flex items-center gap-1.5"
+                      >
+                        {scrapingSourceId === src.id ? (
+                          <>
+                            <svg className="animate-spin h-3 w-3 text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            <span>Scraping...</span>
+                          </>
+                        ) : (
+                          <span>Run Scrape</span>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSource(src.id)}
+                        disabled={ingesting || scrapingSourceId !== null}
+                        className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-30 transition"
+                        title="Delete Source"
+                      >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
