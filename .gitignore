@@ -13,3 +13,4 @@ node_modules/
 .next/
 scratch/check-db-data.ts
 scratch/test-ingest-*.ts
+.beads/interactions.jsonl
