@@ -1,8 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamicNext from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
+
+// Dynamically import MapView client-side only to prevent SSR conflicts with Leaflet
+const MapView = dynamicNext(() => import('@/components/MapView'), {
+  ssr: false,
+});
 
 interface Event {
   id: string;
@@ -28,7 +34,7 @@ interface Event {
 
 export default function CalendarHome() {
   const [events, setEvents] = useState<Event[]>([]);
-  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+  const [viewMode, setViewMode] = useState<'week' | 'month' | 'map'>('week');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDateForDetails, setSelectedDateForDetails] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,9 +127,10 @@ export default function CalendarHome() {
   const activeMultiDayEvents = multiDayEvents.filter(e => {
     if (viewMode === 'week') {
       return isMultiDayActiveInRange(e, weekDates[0], weekDates[13]);
-    } else {
+    } else if (viewMode === 'month') {
       return isMultiDayActiveInRange(e, monthDates[0], monthDates[41]);
     }
+    return true; // show all in map view
   });
 
   const formatMonthName = (date: Date) => {
@@ -134,7 +141,7 @@ export default function CalendarHome() {
     const newPivot = new Date(currentPivotDate);
     if (viewMode === 'week') {
       newPivot.setDate(currentPivotDate.getDate() + offset * 14);
-    } else {
+    } else if (viewMode === 'month') {
       newPivot.setMonth(currentPivotDate.getMonth() + offset);
     }
     setCurrentPivotDate(newPivot);
@@ -178,6 +185,12 @@ export default function CalendarHome() {
               >
                 Month View
               </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'map' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                Map View
+              </button>
             </div>
 
             <a href="/admin" className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:border-slate-700 transition">
@@ -186,39 +199,41 @@ export default function CalendarHome() {
           </div>
         </header>
 
-        {/* Date Navigator */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-slate-200">
-            {viewMode === 'week' 
-              ? `Week of ${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDates[13].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-              : formatMonthName(currentPivotDate)
-            }
-          </h3>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => changePivotDate(-1)}
-              className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 transition"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setCurrentPivotDate(new Date())}
-              className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-300 transition"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => changePivotDate(1)}
-              className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 transition"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+        {/* Date Navigator (Hidden in Map View since map shows all events) */}
+        {viewMode !== 'map' && (
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-bold text-slate-200">
+              {viewMode === 'week' 
+                ? `Week of ${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDates[13].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                : formatMonthName(currentPivotDate)
+              }
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => changePivotDate(-1)}
+                className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 transition"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setCurrentPivotDate(new Date())}
+                className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-300 transition"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => changePivotDate(1)}
+                className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 transition"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Loading Overlay */}
         {loading ? (
@@ -232,13 +247,21 @@ export default function CalendarHome() {
           /* Main Layout Grid */
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
-            {/* Left 3 Cols: Calendar Grid (Single-day events only) */}
+            {/* Left 3 Cols: Calendar Grid OR Map View */}
             <div className="lg:col-span-3 space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">Daily Schedule</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+                  {viewMode === 'map' ? 'Geographic Event View' : 'Daily Schedule'}
+                </h2>
               </div>
 
-              {viewMode === 'week' ? (
+              {viewMode === 'map' ? (
+                /* Map View Component */
+                <MapView 
+                  events={events} 
+                  onSelectEvent={(ev) => setSelectedEvent(ev)} 
+                />
+              ) : viewMode === 'week' ? (
                 /* Week View Grid */
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
                   {weekDates.map((date, idx) => {
@@ -367,7 +390,7 @@ export default function CalendarHome() {
                   No active multi-day programs in this range.
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   {activeMultiDayEvents.map(ev => (
                     <div
                       key={ev.id}
