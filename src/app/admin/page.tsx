@@ -186,7 +186,56 @@ export default function AdminDashboard() {
                 {sources.map((src) => (
                   <div key={src.id} className="p-4 flex items-center justify-between gap-4">
                     <div>
-                      <div className="font-semibold text-slate-200">{src.name}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-semibold text-slate-200">{src.name}</div>
+                        {/* Scrape Status Badge */}
+                        {(() => {
+                          const lastScraped = src.lastScrapedAt ? new Date(src.lastScrapedAt) : null;
+                          const isUpToDate = lastScraped && (Date.now() - lastScraped.getTime()) < 24 * 60 * 60 * 1000;
+                          return isUpToDate ? (
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-semibold">
+                              Up to date
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-semibold">
+                              Needs Scrape
+                            </span>
+                          );
+                        })()}
+                        {/* Contribution Health Badge */}
+                        {(() => {
+                          const approvedEvents = src.events?.filter(e => e.status === 'approved') || [];
+                          if (approvedEvents.length === 0) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-semibold">
+                                Inactive
+                              </span>
+                            );
+                          }
+                          const latestDate = new Date(Math.max(...approvedEvents.map(e => new Date(e.createdAt).getTime())));
+                          const daysDiff = (Date.now() - latestDate.getTime()) / (1000 * 60 * 60 * 24);
+                          
+                          if (daysDiff <= 14) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] font-semibold">
+                                Active Contributor
+                              </span>
+                            );
+                          } else if (daysDiff <= 45) {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/25 text-[9px] font-semibold">
+                                Quiet
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span className="px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 text-[9px] font-semibold">
+                                Inactive
+                              </span>
+                            );
+                          }
+                        })()}
+                      </div>
                       <div className="text-sm text-violet-400">@{src.handle}</div>
                       <div className="flex flex-wrap gap-2 items-center mt-2">
                         <span className="text-[10px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-slate-400">
