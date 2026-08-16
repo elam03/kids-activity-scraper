@@ -24,19 +24,20 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { handle, name } = body;
 
-    if (!handle || !name) {
+    if (!handle) {
       return NextResponse.json(
-        { error: 'Missing handle or name parameters' },
+        { error: 'Missing handle parameter' },
         { status: 400 }
       );
     }
 
     const cleanHandle = handle.replace(/@/g, '').trim();
+    const finalName = name && name.trim() !== '' ? name.trim() : cleanHandle;
 
     const source = await prisma.source.upsert({
       where: { handle: cleanHandle },
-      update: { name },
-      create: { handle: cleanHandle, name },
+      update: { name: finalName },
+      create: { handle: cleanHandle, name: finalName },
     });
 
     return NextResponse.json({ source });

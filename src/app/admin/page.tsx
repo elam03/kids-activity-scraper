@@ -22,7 +22,6 @@ interface IngestReport {
 export default function AdminDashboard() {
   const [sources, setSources] = useState<Source[]>([]);
   const [newHandle, setNewHandle] = useState('');
-  const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(false);
   const [ingesting, setIngesting] = useState(false);
   const [report, setReport] = useState<IngestReport[] | null>(null);
@@ -44,18 +43,17 @@ export default function AdminDashboard() {
 
   const handleAddSource = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newHandle || !newName) return;
+    if (!newHandle) return;
     setLoading(true);
 
     try {
       const res = await fetch('/api/admin/sources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle: newHandle, name: newName }),
+        body: JSON.stringify({ handle: newHandle, name: newHandle }),
       });
       if (res.ok) {
         setNewHandle('');
-        setNewName('');
         await fetchSources();
       }
     } catch (err) {
@@ -176,8 +174,8 @@ export default function AdminDashboard() {
           {/* Add Source Card */}
           <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-6 shadow-md">
             <h3 className="text-lg font-semibold mb-4 text-slate-200">Add New Instagram Account</h3>
-            <form onSubmit={handleAddSource} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
+            <form onSubmit={handleAddSource} className="flex flex-col sm:flex-row gap-4 items-end">
+              <div className="flex-1">
                 <label className="block text-xs font-medium text-slate-400 mb-1">Instagram Handle</label>
                 <input
                   type="text"
@@ -189,21 +187,10 @@ export default function AdminDashboard() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Bay Area Explorer"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-100 outline-none transition focus:border-violet-500"
-                />
-              </div>
-              <div className="sm:col-span-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-sm font-semibold text-white transition active:scale-[0.99] disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-sm font-semibold text-white transition active:scale-[0.99] disabled:opacity-50"
                 >
                   {loading ? 'Adding...' : 'Add Source'}
                 </button>
