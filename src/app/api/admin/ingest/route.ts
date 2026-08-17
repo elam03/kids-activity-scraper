@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { handle } = body;
+    const { handle, limit } = body;
+    const scrapeLimit = limit && typeof limit === 'number' ? limit : 5;
 
     // Fetch sources to process
     let sources = [];
@@ -48,8 +49,8 @@ export async function POST(request: Request) {
       let skippedCount = 0;
 
       try {
-        // Scrape posts (default to last 10 posts)
-        const posts = await scrapeInstagramAccount(source.handle, 10, 14);
+        // Scrape posts (using dynamic limit)
+        const posts = await scrapeInstagramAccount(source.handle, scrapeLimit, 14);
         scrapedCount = posts.length;
 
         for (const post of posts) {

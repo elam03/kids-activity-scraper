@@ -72,16 +72,16 @@ export default function AdminDashboard() {
     }
   };
 
-  const triggerSingleSourceIngest = async (sourceId: string, handle: string) => {
+  const triggerSingleSourceIngest = async (sourceId: string, handle: string, limit: number = 5) => {
     setScrapingSourceId(sourceId);
     setReport(null);
-    setStatusLog(`Initializing single channel scrape for @${handle}...\nConnecting to Apify endpoint...\n`);
+    setStatusLog(`Initializing single channel scrape for @${handle} (limit: ${limit})...\nConnecting to Apify endpoint...\n`);
 
     try {
       const res = await fetch('/api/admin/ingest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ handle }),
+        body: JSON.stringify({ handle, limit }),
       });
       const data = await res.json();
 
@@ -116,11 +116,13 @@ export default function AdminDashboard() {
   const triggerIngest = async () => {
     setIngesting(true);
     setReport(null);
-    setStatusLog('Initializing scraper pipeline...\nConnecting to Apify endpoint...\n');
+    setStatusLog('Initializing scraper pipeline for all channels (limit: 5)...\nConnecting to Apify endpoint...\n');
 
     try {
       const res = await fetch('/api/admin/ingest', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: 5 }),
       });
       const data = await res.json();
       
@@ -237,18 +239,10 @@ export default function AdminDashboard() {
                         })()}
                       </div>
                       <div className="text-sm text-violet-400">@{src.handle}</div>
-                      <div className="flex flex-wrap gap-2 items-center mt-2">
-                        <span className="text-[10px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-slate-400">
-                          Scraped: {src.events?.length || 0}
-                        </span>
-                        <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-emerald-400">
-                          Approved: {src.events?.filter(e => e.status === 'approved').length || 0}
-                        </span>
-                        <span className="text-[10px] bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded text-red-400">
-                          Rejected: {src.events?.filter(e => e.status === 'rejected').length || 0}
-                        </span>
+                      <div className="text-[11px] text-slate-400 mt-2">
+                        {src.events?.length || 0} scraped posts ({src.events?.filter(e => e.status === 'approved').length || 0} approved, {src.events?.filter(e => e.status === 'rejected').length || 0} rejected)
                       </div>
-                      <div className="text-[10px] text-slate-500 mt-2">
+                      <div className="text-[10px] text-slate-500 mt-1">
                         Last scraped: {src.lastScrapedAt ? new Date(src.lastScrapedAt).toLocaleString() : 'Never'}
                       </div>
                     </div>
@@ -262,10 +256,12 @@ export default function AdminDashboard() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                         </svg>
                       </button>
+                      
+                      {/* Scrape Latest (5) Button */}
                       <button
-                        onClick={() => triggerSingleSourceIngest(src.id, src.handle)}
+                        onClick={() => triggerSingleSourceIngest(src.id, src.handle, 5)}
                         disabled={ingesting || scrapingSourceId !== null}
-                        className="px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-xs font-semibold text-white transition active:scale-[0.98] flex items-center gap-1.5"
+                        className="px-2.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-[11px] font-semibold text-white transition active:scale-[0.98] flex items-center gap-1"
                       >
                         {scrapingSourceId === src.id ? (
                           <>
@@ -276,9 +272,19 @@ export default function AdminDashboard() {
                             <span>Scraping...</span>
                           </>
                         ) : (
-                          <span>Run Scrape</span>
+                          <span>Scrape Latest</span>
                         )}
                       </button>
+
+                      {/* Deep Scrape (20) Button */}
+                      <button
+                        onClick={() => triggerSingleSourceIngest(src.id, src.handle, 20)}
+                        disabled={ingesting || scrapingSourceId !== null}
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-50 text-[11px] font-semibold text-slate-300 transition active:scale-[0.98]"
+                      >
+                        Deep Scrape
+                      </button>
+
                       <button
                         onClick={() => handleDeleteSource(src.id)}
                         disabled={ingesting || scrapingSourceId !== null}
