@@ -12,14 +12,16 @@ datasource db {
 }
 
 model Source {
-  id            String    @id @default(uuid())
-  handle        String    @unique
-  name          String
-  lastScrapedAt DateTime?
-  isActive      Boolean   @default(true)
-  events        Event[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                  String    @id @default(uuid())
+  handle              String    @unique
+  name                String
+  lastScrapedAt       DateTime?
+  scrapeIntervalHours Int       @default(24)
+  customIntervalHours Int?
+  isActive            Boolean   @default(true)
+  events              Event[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
 model Event {
