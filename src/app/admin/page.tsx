@@ -8,6 +8,8 @@ interface Source {
   handle: string;
   name: string;
   lastScrapedAt: string | null;
+  scrapeIntervalHours: number;
+  customIntervalHours: number | null;
   isActive: boolean;
   events?: Array<{
     id: string;
@@ -110,6 +112,24 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error('Failed to delete source:', err);
+    }
+  };
+
+  const updateSourceInterval = async (id: string, intervalValue: string) => {
+    try {
+      const res = await fetch('/api/admin/sources', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          customIntervalHours: intervalValue === 'auto' ? 'auto' : Number(intervalValue)
+        })
+      });
+      if (res.ok) {
+        await fetchSources();
+      }
+    } catch (err) {
+      console.error('Failed to update source interval:', err);
     }
   };
 
@@ -239,11 +259,47 @@ export default function AdminDashboard() {
                         })()}
                       </div>
                       <div className="text-sm text-violet-400">@{src.handle}</div>
+                      
                       <div className="text-[11px] text-slate-400 mt-2">
                         {src.events?.length || 0} scraped posts ({src.events?.filter(e => e.status === 'approved').length || 0} approved, {src.events?.filter(e => e.status === 'rejected').length || 0} rejected)
                       </div>
-                      <div className="text-[10px] text-slate-500 mt-1">
-                        Last scraped: {src.lastScrapedAt ? new Date(src.lastScrapedAt).toLocaleString() : 'Never'}
+                      
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 items-center mt-2 text-[10px] text-slate-500">
+                        <div>
+                          Last scraped: {src.lastScrapedAt ? new Date(src.lastScrapedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'Never'}
+                        </div>
+                        <div>•</div>
+                        {(() => {
+                          const activeInterval = src.customIntervalHours ?? src.scrapeIntervalHours;
+                          const nextScrape = src.lastScrapedAt 
+                            ? new Date(new Date(src.lastScrapedAt).getTime() + activeInterval * 60 * 60 * 1000) 
+                            : null;
+                          const isDue = !nextScrape || nextScrape.getTime() <= Date.now();
+                          
+                          if (isDue) {
+                            return <span className="text-amber-400 font-medium">Next run: due now</span>;
+                          } else {
+                            const hoursRemaining = Math.max(1, Math.round((nextScrape.getTime() - Date.now()) / (1000 * 60 * 60)));
+                            return <span>Next run: in {hoursRemaining}h</span>;
+                          }
+                        })()}
+                      </div>
+
+                      {/* Interval Settings Selector */}
+                      <div className="mt-3 flex items-center gap-2">
+                        <label className="text-[10px] text-slate-500">Scrape Schedule:</label>
+                        <select
+                          value={src.customIntervalHours ?? 'auto'}
+                          onChange={(e) => updateSourceInterval(src.id, e.target.value)}
+                          className="bg-slate-950 border border-slate-900 rounded-lg px-2 py-1 text-[10px] font-medium text-slate-300 outline-none focus:border-violet-500 transition cursor-pointer"
+                        >
+                          <option value="auto">Auto (adaptive: {src.scrapeIntervalHours}h)</option>
+                          <option value="6">Fixed (6 hours)</option>
+                          <option value="12">Fixed (12 hours)</option>
+                          <option value="24">Fixed (24 hours)</option>
+                          <option value="72">Fixed (3 days)</option>
+                          <option value="120">Fixed (5 days)</option>
+                        </select>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

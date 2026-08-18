@@ -61,6 +61,32 @@ export async function POST(request: Request) {
   }
 }
 
+// PUT /api/admin/sources
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, customIntervalHours } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });
+    }
+
+    const source = await prisma.source.update({
+      where: { id },
+      data: {
+        customIntervalHours: customIntervalHours === undefined || customIntervalHours === 'auto' ? null : Number(customIntervalHours)
+      }
+    });
+
+    return NextResponse.json({ source });
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/admin/sources
 export async function DELETE(request: Request) {
   try {
