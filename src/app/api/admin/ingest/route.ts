@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
         for (const post of posts) {
           // Check if post has already been processed (approved, pending, or rejected placeholder)
-          const existingEvent = await prisma.event.findUnique({
+          const existingEvent = await prisma.event.findFirst({
             where: { rawPostUrl: post.url }
           });
 

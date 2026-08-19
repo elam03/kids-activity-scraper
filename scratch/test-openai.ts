@@ -77,7 +77,7 @@ async function runTests() {
     source.id
   );
 
-  const ev1 = await prisma.event.findUnique({
+  const ev1 = await prisma.event.findFirst({
     where: { rawPostUrl: "https://instagram.com/p/high_conf" }
   });
   if (!ev1 || ev1.status !== "approved" || ev1.title !== "Nature Walk for Toddlers") {
@@ -111,7 +111,7 @@ async function runTests() {
     source.id
   );
 
-  const ev2 = await prisma.event.findUnique({
+  const ev2 = await prisma.event.findFirst({
     where: { rawPostUrl: "https://instagram.com/p/low_conf" }
   });
   if (!ev2 || ev2.status !== "pending" || ev2.title !== "Unknown Craft Event") {
@@ -145,7 +145,7 @@ async function runTests() {
     source.id
   );
 
-  const ev3 = await prisma.event.findUnique({
+  const ev3 = await prisma.event.findFirst({
     where: { rawPostUrl: "https://instagram.com/p/non_event" }
   });
   if (!ev3 || ev3.status !== "rejected" || ev3.title !== "Non-event") {

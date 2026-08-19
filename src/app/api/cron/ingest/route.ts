@@ -62,6 +62,20 @@ async function handleCronTrigger(request: Request) {
       where: { isActive: true },
     });
 
+    // 2.1 Daily Cleanup: Delete events in the past (where startDate < today)
+    // We get the local date string to avoid timezone boundary issues
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
+    await prisma.event.deleteMany({
+      where: {
+        startDate: { lt: todayStr }
+      }
+    });
+
     const report: Array<{
       source: string;
       scraped: boolean;
@@ -100,7 +114,7 @@ async function handleCronTrigger(request: Request) {
         scrapedCount = posts.length;
 
         for (const post of posts) {
-          const existingEvent = await prisma.event.findUnique({
+          const existingEvent = await prisma.event.findFirst({
             where: { rawPostUrl: post.url },
           });
 

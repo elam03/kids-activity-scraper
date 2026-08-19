@@ -136,14 +136,36 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
   const rawContent = resultData.choices[0].message.content;
   const parsed = JSON.parse(rawContent) as ExtractionResult;
 
+  // South Bay cities list for geographic checks
+  const southBayCities = [
+    'san jose', 'santa clara', 'sunnyvale', 'cupertino', 'milpitas',
+    'campbell', 'los gatos', 'mountain view', 'saratoga', 'morgan hill', 'gilroy'
+  ];
+
   // Save results to database
   if (parsed.isEvent && parsed.events.length > 0) {
     for (const rawEvent of parsed.events) {
-      const status = parsed.confidence >= 0.8 ? "approved" : "pending";
+      // 1. Past Date Ignore Filter
+      if (rawEvent.startDate < currentDate) {
+        console.log(`Skipping past event: ${rawEvent.title} (${rawEvent.startDate})`);
+        continue;
+      }
+
+      // 2. Geographic Routing Check
+      const eventLocation = (rawEvent.location || '').toLowerCase();
+      const isSouthBay = southBayCities.some(city => eventLocation.includes(city));
+      
+      // Default to "approved" if confidence is high AND it's in the South Bay, otherwise route to "pending" review queue
+      let status = parsed.confidence >= 0.8 && isSouthBay ? "approved" : "pending";
+
       await prisma.event.upsert({
-        where: { rawPostUrl: postUrl },
+        where: {
+          rawPostUrl_title: {
+            rawPostUrl: postUrl,
+            title: rawEvent.title
+          }
+        },
         update: {
-          title: rawEvent.title,
           startDate: rawEvent.startDate,
           endDate: rawEvent.endDate || null,
           startTime: rawEvent.startTime || null,
@@ -180,7 +202,12 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
   } else {
     // If not an event, save a rejected placeholder event to avoid re-processing in future runs
     await prisma.event.upsert({
-      where: { rawPostUrl: postUrl },
+      where: {
+        rawPostUrl_title: {
+          rawPostUrl: postUrl,
+          title: "Non-event"
+        }
+      },
       update: { status: "rejected" },
       create: {
         sourceId,

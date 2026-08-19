@@ -28,7 +28,7 @@ model Event {
   id              String   @id @default(uuid())
   sourceId        String
   source          Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  rawPostUrl      String   @unique
+  rawPostUrl      String
   rawCaption      String
   title           String
   startDate       String   // Format: YYYY-MM-DD
@@ -45,4 +45,6 @@ model Event {
   confidence      Float    @default(1.0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@unique([rawPostUrl, title])
 }
