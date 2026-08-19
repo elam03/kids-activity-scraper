@@ -133,6 +133,34 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCleanAndRescrape = async (id: string, handle: string) => {
+    if (!confirm(`Are you sure you want to delete all scraped events for @${handle} and trigger a fresh deep scrape?`)) {
+      return;
+    }
+    
+    setReport(null);
+    setStatusLog(`Flushing scraped events history for @${handle}...\n`);
+    
+    try {
+      const res = await fetch('/api/admin/sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'flush', id })
+      });
+      
+      if (res.ok) {
+        setStatusLog(prev => prev + `History flushed successfully. Triggering deep scrape...\n`);
+        await triggerSingleSourceIngest(id, handle, 20);
+      } else {
+        const data = await res.json();
+        setStatusLog(`Error flushing history: ${data.error || 'Request failed'}\n`);
+      }
+    } catch (err) {
+      console.error('Failed to flush and rescrape:', err);
+      setStatusLog(`Connection failed: ${(err as Error).message}\n`);
+    }
+  };
+
   const triggerIngest = async () => {
     setIngesting(true);
     setReport(null);
@@ -339,6 +367,16 @@ export default function AdminDashboard() {
                         className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-50 text-[11px] font-semibold text-slate-300 transition active:scale-[0.98]"
                       >
                         Deep Scrape
+                      </button>
+
+                      {/* Clean & Re-scrape Button */}
+                      <button
+                        onClick={() => handleCleanAndRescrape(src.id, src.handle)}
+                        disabled={ingesting || scrapingSourceId !== null}
+                        className="px-2.5 py-1.5 rounded-lg bg-red-950/20 border border-red-900/30 hover:border-red-900/50 disabled:opacity-50 text-[11px] font-semibold text-red-300 transition active:scale-[0.98]"
+                        title="Delete all scraped history for this source and run a fresh deep scrape"
+                      >
+                        Clean & Re-scrape
                       </button>
 
                       <button
