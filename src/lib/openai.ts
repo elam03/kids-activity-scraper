@@ -180,7 +180,7 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
           confidence: parsed.confidence,
         },
         create: {
-          sourceId,
+          source: { connect: { id: sourceId } },
           rawPostUrl: postUrl,
           rawCaption: caption || "",
           title: rawEvent.title,
@@ -210,7 +210,7 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
       },
       update: { status: "rejected" },
       create: {
-        sourceId,
+        source: { connect: { id: sourceId } },
         rawPostUrl: postUrl,
         rawCaption: caption || "",
         title: "Non-event",
