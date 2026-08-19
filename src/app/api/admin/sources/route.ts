@@ -34,7 +34,27 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { handle, name } = body;
+    const { handle, name, action, id } = body;
+
+    // Handle History Flush Action
+    if (action === 'flush') {
+      if (!id) {
+        return NextResponse.json({ error: 'Missing source id for flush action' }, { status: 400 });
+      }
+      
+      // Delete all events for this source (cascades or clears)
+      await prisma.event.deleteMany({
+        where: { sourceId: id }
+      });
+
+      // Reset last scraped timestamp
+      const source = await prisma.source.update({
+        where: { id },
+        data: { lastScrapedAt: null }
+      });
+
+      return NextResponse.json({ success: true, source });
+    }
 
     if (!handle) {
       return NextResponse.json(
