@@ -145,9 +145,12 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
   // Save results to database
   if (parsed.isEvent && parsed.events.length > 0) {
     for (const rawEvent of parsed.events) {
-      // 1. Past Date Ignore Filter
-      if (rawEvent.startDate < currentDate) {
-        console.log(`Skipping past event: ${rawEvent.title} (${rawEvent.startDate})`);
+      // 1. Fallback for non-nullable start date string
+      const eventStartDate = rawEvent.startDate || currentDate;
+
+      // 1.1 Past Date Ignore Filter
+      if (eventStartDate < currentDate) {
+        console.log(`Skipping past event: ${rawEvent.title} (${eventStartDate})`);
         continue;
       }
 
@@ -166,7 +169,7 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
           }
         },
         update: {
-          startDate: rawEvent.startDate,
+          startDate: eventStartDate,
           endDate: rawEvent.endDate || null,
           startTime: rawEvent.startTime || null,
           endTime: rawEvent.endTime || null,
@@ -184,7 +187,7 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
           rawPostUrl: postUrl,
           rawCaption: caption || "",
           title: rawEvent.title,
-          startDate: rawEvent.startDate,
+          startDate: eventStartDate,
           endDate: rawEvent.endDate || null,
           startTime: rawEvent.startTime || null,
           endTime: rawEvent.endTime || null,
