@@ -40,6 +40,19 @@ function SourcesManager() {
   const [selectedSourceForHistory, setSelectedSourceForHistory] = useState<Source | null>(null);
   const [report, setReport] = useState<IngestReport[] | null>(null);
   const [statusLog, setStatusLog] = useState<string>('');
+  const [apifyBilling, setApifyBilling] = useState<any | null>(null);
+
+  const fetchApifyBilling = async () => {
+    try {
+      const res = await fetch('/api/admin/billing');
+      if (res.ok) {
+        const data = await res.json();
+        setApifyBilling(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchSources = async () => {
     try {
@@ -53,6 +66,7 @@ function SourcesManager() {
 
   useEffect(() => {
     fetchSources();
+    fetchApifyBilling();
   }, []);
 
   const handleAddSource = async (e: React.FormEvent) => {
@@ -475,6 +489,52 @@ function SourcesManager() {
               </div>
             )}
           </div>
+
+          {/* Apify Billing & Quota Widget */}
+          {apifyBilling && (
+            <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-6 shadow-md">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <h3 className="text-sm font-semibold text-slate-200">Apify API Usage & Quota</h3>
+              </div>
+              
+              <div className="space-y-4 text-xs">
+                <div className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-900">
+                  <span className="text-slate-400">Account Username:</span>
+                  <span className="font-semibold text-slate-200">@{apifyBilling.username}</span>
+                </div>
+
+                <div className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-900">
+                  <span className="text-slate-400">Subscription Plan:</span>
+                  <span className="font-semibold text-violet-400 uppercase tracking-wider">{apifyBilling.plan?.name || 'Free'}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-400">Monthly Usage:</span>
+                    <span className="font-mono text-slate-200">
+                      ${(apifyBilling.stats?.usageThisMonth || 0).toFixed(2)} / ${(apifyBilling.plan?.monthlyPrepaidUsageUsd || 5.0).toFixed(2)}
+                    </span>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500" 
+                      style={{ 
+                        width: `${Math.min(100, ((apifyBilling.stats?.usageThisMonth || 0) / (apifyBilling.plan?.monthlyPrepaidUsageUsd || 5.0)) * 100)}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
+                  <span>Today's Cost: ${(apifyBilling.stats?.usageToday || 0).toFixed(4)}</span>
+                  <span>Resets monthly</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
       </main>
