@@ -34,7 +34,7 @@ interface Event {
 
 export default function CalendarHome() {
   const [events, setEvents] = useState<Event[]>([]);
-  const [viewMode, setViewMode] = useState<'week' | 'month' | 'map'>('week');
+  const [viewMode, setViewMode] = useState<'week' | 'month' | 'map' | 'weekend'>('week');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDateForDetails, setSelectedDateForDetails] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +82,21 @@ export default function CalendarHome() {
     return dates;
   };
 
+  const getWeekendDates = (pivot: Date) => {
+    const dates = [];
+    const day = pivot.getDay();
+    const startOfWeek = new Date(pivot);
+    startOfWeek.setDate(pivot.getDate() - day); // Start on Sunday
+    
+    // Friday (5), Saturday (6), Sunday (7) of this week
+    for (const dayIndex of [5, 6, 7]) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + dayIndex);
+      dates.push(d);
+    }
+    return dates;
+  };
+
   const getMonthDates = (pivot: Date) => {
     const year = pivot.getFullYear();
     const month = pivot.getMonth();
@@ -107,6 +122,7 @@ export default function CalendarHome() {
   };
 
   const weekDates = getWeekDates(currentPivotDate);
+  const weekendDates = getWeekendDates(currentPivotDate);
   const monthDates = getMonthDates(currentPivotDate);
 
   const formatLocalDateString = (date: Date) => {
@@ -134,6 +150,8 @@ export default function CalendarHome() {
   const activeMultiDayEvents = multiDayEvents.filter(e => {
     if (viewMode === 'week') {
       return isMultiDayActiveInRange(e, weekDates[0], weekDates[13]);
+    } else if (viewMode === 'weekend') {
+      return isMultiDayActiveInRange(e, weekendDates[0], weekendDates[2]);
     } else if (viewMode === 'month') {
       return isMultiDayActiveInRange(e, monthDates[0], monthDates[41]);
     }
@@ -148,6 +166,8 @@ export default function CalendarHome() {
     const newPivot = new Date(currentPivotDate);
     if (viewMode === 'week') {
       newPivot.setDate(currentPivotDate.getDate() + offset * 14);
+    } else if (viewMode === 'weekend') {
+      newPivot.setDate(currentPivotDate.getDate() + offset * 7);
     } else if (viewMode === 'month') {
       newPivot.setMonth(currentPivotDate.getMonth() + offset);
     }
@@ -184,19 +204,25 @@ export default function CalendarHome() {
                 onClick={() => setViewMode('week')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'week' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >
-                Week View
+                Week
+              </button>
+              <button
+                onClick={() => setViewMode('weekend')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'weekend' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                Weekend
               </button>
               <button
                 onClick={() => setViewMode('month')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'month' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >
-                Month View
+                Month
               </button>
               <button
                 onClick={() => setViewMode('map')}
                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'map' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
               >
-                Map View
+                Map
               </button>
             </div>
 
@@ -212,6 +238,8 @@ export default function CalendarHome() {
             <h3 className="text-lg font-bold text-slate-200">
               {viewMode === 'week' 
                 ? `Week of ${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDates[13].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                : viewMode === 'weekend'
+                ? `Weekend of ${weekendDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekendDates[2].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                 : formatMonthName(currentPivotDate)
               }
             </h3>
@@ -276,6 +304,12 @@ export default function CalendarHome() {
                     const isToday = new Date().toDateString() === date.toDateString();
                     const visibleLimit = 3;
 
+                    // Filter ongoing programs active on this specific date
+                    const dateStr = formatLocalDateString(date);
+                    const activeProgramsThisDay = activeMultiDayEvents.filter(e => 
+                      e.startDate <= dateStr && e.endDate! >= dateStr
+                    );
+
                     return (
                       <div 
                         key={idx} 
@@ -286,7 +320,7 @@ export default function CalendarHome() {
                         }`}
                       >
                         {/* Day header */}
-                        <div className="flex justify-between items-baseline mb-3">
+                        <div className="flex justify-between items-baseline mb-2">
                           <span className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'text-violet-400' : 'text-slate-500'}`}>
                             {date.toLocaleDateString('en-US', { weekday: 'short' })}
                           </span>
@@ -294,6 +328,25 @@ export default function CalendarHome() {
                             {date.getDate()}
                           </span>
                         </div>
+
+                        {/* Ongoing Programs Spans */}
+                        {activeProgramsThisDay.length > 0 && (
+                          <div className="flex gap-1.5 mb-2.5 overflow-x-auto py-1 border-b border-slate-900 pb-1.5 scrollbar-none">
+                            {activeProgramsThisDay.map(prog => (
+                              <div
+                                key={prog.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedEvent(prog);
+                                }}
+                                className="px-2 py-0.5 rounded-full bg-violet-500/20 hover:bg-violet-500/30 text-[8px] font-extrabold text-violet-300 cursor-pointer border border-violet-500/10 transition truncate max-w-[80px]"
+                                title={`Ongoing: ${prog.title}`}
+                              >
+                                {prog.title}
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
                         {/* Events list */}
                         <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
@@ -318,7 +371,94 @@ export default function CalendarHome() {
                               {dayEvents.length > visibleLimit && (
                                 <button
                                   onClick={() => setSelectedDateForDetails(date)}
-                                  className="w-full py-1.5 rounded-lg border border-dashed border-violet-500/20 bg-violet-500/5 text-[9px] font-bold text-violet-400 hover:bg-violet-500/10 transition"
+                                  className="w-full py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-[9px] font-bold text-white shadow-md shadow-violet-500/10 transition-all duration-150 hover:scale-[1.01]"
+                                >
+                                  +{dayEvents.length - visibleLimit} more activities
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : viewMode === 'weekend' ? (
+                /* Weekend View Grid (Friday, Saturday, Sunday) with wide layout */
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {weekendDates.map((date, idx) => {
+                    const dayEvents = getSingleDayEventsForDate(date);
+                    const isToday = new Date().toDateString() === date.toDateString();
+                    const visibleLimit = 5; // show more events in wide layout
+
+                    const dateStr = formatLocalDateString(date);
+                    const activeProgramsThisDay = activeMultiDayEvents.filter(e => 
+                      e.startDate <= dateStr && e.endDate! >= dateStr
+                    );
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`rounded-2xl border p-6 flex flex-col h-[400px] min-h-[400px] overflow-hidden backdrop-blur-sm transition hover:shadow-xl ${
+                          isToday 
+                            ? 'border-violet-500/50 bg-violet-950/5 shadow-md shadow-violet-500/5' 
+                            : 'border-slate-900 bg-slate-900/10'
+                        }`}
+                      >
+                        {/* Day header */}
+                        <div className="flex justify-between items-baseline mb-4 border-b border-slate-900 pb-3">
+                          <span className={`text-xs font-bold uppercase tracking-widest ${isToday ? 'text-violet-400' : 'text-slate-400'}`}>
+                            {date.toLocaleDateString('en-US', { weekday: 'long' })}
+                          </span>
+                          <span className={`text-2xl font-extrabold ${isToday ? 'text-violet-400' : 'text-slate-200'}`}>
+                            {date.getDate()}
+                          </span>
+                        </div>
+
+                        {/* Ongoing Programs Spans */}
+                        {activeProgramsThisDay.length > 0 && (
+                          <div className="flex gap-2 mb-4 overflow-x-auto py-1 border-b border-slate-900/50 pb-3 scrollbar-none">
+                            {activeProgramsThisDay.map(prog => (
+                              <div
+                                key={prog.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedEvent(prog);
+                                }}
+                                className="px-2.5 py-1 rounded-full bg-violet-500/20 hover:bg-violet-500/30 text-[9px] font-extrabold text-violet-300 cursor-pointer border border-violet-500/10 transition truncate max-w-[120px]"
+                                title={`Ongoing: ${prog.title}`}
+                              >
+                                {prog.title}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Events list */}
+                        <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
+                          {dayEvents.length === 0 ? (
+                            <div className="text-xs text-slate-600 italic py-10 text-center">No weekend activities</div>
+                          ) : (
+                            <>
+                              {dayEvents.slice(0, visibleLimit).map(ev => (
+                                <div
+                                  key={ev.id}
+                                  onClick={() => setSelectedEvent(ev)}
+                                  className="p-3 rounded-xl border border-slate-800 bg-slate-950/80 cursor-pointer transition hover:border-slate-700 active:scale-[0.98] group"
+                                >
+                                  <div className="text-xs font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-violet-400 transition">
+                                    {ev.title}
+                                  </div>
+                                  <div className="flex justify-between items-center mt-2.5 text-[10px] text-slate-500">
+                                    <span>{ev.startTime || 'All day'}</span>
+                                    <span className="text-slate-400">{ev.location?.split(',')[0]}</span>
+                                  </div>
+                                </div>
+                              ))}
+                              {dayEvents.length > visibleLimit && (
+                                <button
+                                  onClick={() => setSelectedDateForDetails(date)}
+                                  className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white shadow-md shadow-violet-500/10 transition-all duration-150 hover:scale-[1.01]"
                                 >
                                   +{dayEvents.length - visibleLimit} more activities
                                 </button>
