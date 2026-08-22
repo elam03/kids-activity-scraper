@@ -50,6 +50,7 @@ export async function POST(request: Request) {
     if (updateFields.cost !== undefined) data.cost = updateFields.cost;
     if (updateFields.isFree !== undefined) data.isFree = updateFields.isFree;
     if (updateFields.ageRange !== undefined) data.ageRange = updateFields.ageRange;
+    if (updateFields.ageGroup !== undefined) data.ageGroup = updateFields.ageGroup;
     if (updateFields.registrationUrl !== undefined) data.registrationUrl = updateFields.registrationUrl;
     if (updateFields.latitude !== undefined) data.latitude = updateFields.latitude === null ? null : Number(updateFields.latitude);
     if (updateFields.longitude !== undefined) data.longitude = updateFields.longitude === null ? null : Number(updateFields.longitude);

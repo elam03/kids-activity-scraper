@@ -74,6 +74,7 @@ Return a JSON object strictly matching this schema:
       "endTime": string or null, // HH:MM (24-hour format)
       "location": string or null, // City/venue name
       "ageRange": string or null, // e.g. "0-4 years"
+      "ageGroup": "infants" | "toddlers" | "preschoolers" | "kids" | "teens" | "all", // Classify based on ageRange details
       "category": "sports" | "arts" | "nature" | "music" | "education" | "festival" | "other",
       "cost": string or null, // e.g. "Free" or price details
       "isFree": boolean, // true if free event, false otherwise
@@ -154,8 +155,13 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
       const eventStartDate = rawEvent.startDate || currentDate;
 
       // 1.1 Past Date Ignore Filter
-      if (eventStartDate < currentDate) {
-        console.log(`Skipping past event: ${rawEvent.title} (${eventStartDate})`);
+      // Only skip if the entire event range has passed (i.e. if endDate is in the past, or if no endDate and startDate is in the past)
+      const isPastEvent = rawEvent.endDate 
+        ? rawEvent.endDate < currentDate 
+        : eventStartDate < currentDate;
+
+      if (isPastEvent) {
+        console.log(`Skipping past event: ${rawEvent.title} (ends: ${rawEvent.endDate || eventStartDate})`);
         continue;
       }
 
@@ -171,6 +177,9 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
       // 3. Server-side Geocode Coordinates Resolution
       const coords = rawEvent.location ? await geocodeLocation(rawEvent.location) : null;
 
+      // Extract ageGroup classification (with "all" fallback)
+      const eventAgeGroup = (rawEvent as any).ageGroup || 'all';
+
       await prisma.event.upsert({
         where: {
           rawPostUrl_title: {
@@ -185,6 +194,7 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
           endTime: rawEvent.endTime || null,
           location: rawEvent.location || null,
           ageRange: rawEvent.ageRange || null,
+          ageGroup: eventAgeGroup,
           category: rawEvent.category,
           cost: rawEvent.cost || null,
           isFree: typeof rawEvent.isFree === 'boolean' ? rawEvent.isFree : false,
@@ -205,6 +215,7 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
           endTime: rawEvent.endTime || null,
           location: rawEvent.location || null,
           ageRange: rawEvent.ageRange || null,
+          ageGroup: eventAgeGroup,
           category: rawEvent.category,
           cost: rawEvent.cost || null,
           isFree: typeof rawEvent.isFree === 'boolean' ? rawEvent.isFree : false,

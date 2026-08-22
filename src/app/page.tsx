@@ -39,6 +39,25 @@ export default function CalendarHome() {
   const [selectedDateForDetails, setSelectedDateForDetails] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Filter States
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // Theme State
+  const [theme, setTheme] = useState<'cosmo' | 'bubblegum' | 'jungle'>('cosmo');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('calendar-theme');
+    if (savedTheme && ['cosmo', 'bubblegum', 'jungle'].includes(savedTheme)) {
+      setTheme(savedTheme as any);
+    }
+  }, []);
+
+  const changeTheme = (newTheme: 'cosmo' | 'bubblegum' | 'jungle') => {
+    setTheme(newTheme);
+    localStorage.setItem('calendar-theme', newTheme);
+  };
+
   // Date navigation state
   const [currentPivotDate, setCurrentPivotDate] = useState(new Date());
 
@@ -63,8 +82,17 @@ export default function CalendarHome() {
     return e.endDate !== null && e.startDate !== e.endDate;
   };
 
-  const singleDayEvents = events.filter(e => !isMultiDayEvent(e));
-  const multiDayEvents = events.filter(e => isMultiDayEvent(e));
+  // Filter events based on selections
+  const filteredEvents = events.filter(e => {
+    // Some events might have an undefined or null ageGroup in old scraped records; default to "all"
+    const eventAge = (e as any).ageGroup || 'all';
+    const matchesAge = selectedAgeGroup === 'all' || eventAge === selectedAgeGroup;
+    const matchesCategory = selectedCategory === 'all' || e.category === selectedCategory;
+    return matchesAge && matchesCategory;
+  });
+
+  const singleDayEvents = filteredEvents.filter(e => !isMultiDayEvent(e));
+  const multiDayEvents = filteredEvents.filter(e => isMultiDayEvent(e));
 
   // Get date helper structures
   const getWeekDates = (pivot: Date) => {
@@ -184,58 +212,179 @@ export default function CalendarHome() {
     other: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
   };
 
+  const themeClasses = {
+    cosmo: {
+      bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 flex flex-col justify-between transition-all duration-300',
+      text: 'text-slate-100',
+      textMuted: 'text-slate-400',
+      card: 'bg-slate-900/10 border-slate-900 hover:border-slate-800',
+      cardAlt: 'bg-slate-950/80 border-slate-800 hover:border-slate-700',
+      cardBorder: 'border-slate-900',
+      cardText: 'text-slate-300',
+      headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-violet-200 to-indigo-200',
+      navBtn: 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300',
+      badge: 'bg-slate-800 text-slate-300',
+      activeTab: 'bg-violet-600 text-white',
+      inactiveTab: 'text-slate-400 hover:text-slate-200',
+      border: 'border-slate-900',
+    },
+    bubblegum: {
+      bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 flex flex-col justify-between transition-all duration-300',
+      text: 'text-slate-800',
+      textMuted: 'text-slate-500',
+      card: 'bg-white/80 border-purple-200/60 shadow-purple-500/5 hover:border-purple-300/80 hover:bg-white',
+      cardAlt: 'bg-white border-purple-200 hover:border-purple-300',
+      cardBorder: 'border-purple-100',
+      cardText: 'text-slate-600',
+      headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 font-extrabold',
+      navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-slate-700',
+      badge: 'bg-purple-100 text-purple-700',
+      activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
+      inactiveTab: 'text-purple-600/70 hover:text-purple-700',
+      border: 'border-purple-100',
+    },
+    jungle: {
+      bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
+      text: 'text-emerald-950',
+      textMuted: 'text-emerald-800/70',
+      card: 'bg-white/90 border-emerald-200/60 shadow-emerald-500/5 hover:border-emerald-300/80 hover:bg-white',
+      cardAlt: 'bg-white border-emerald-200 hover:border-emerald-300',
+      cardBorder: 'border-emerald-100',
+      cardText: 'text-emerald-800',
+      headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-amber-700 font-extrabold',
+      navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900',
+      badge: 'bg-emerald-100 text-emerald-800',
+      activeTab: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20',
+      inactiveTab: 'text-emerald-700/70 hover:text-emerald-800',
+      border: 'border-emerald-100',
+    }
+  };
+
+  const activeTheme = themeClasses[theme] || themeClasses.cosmo;
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 flex flex-col justify-between">
+    <div className={activeTheme.bg}>
       <div className="mx-auto max-w-7xl w-full">
         {/* Header Block */}
-        <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 pb-6 border-b border-slate-900">
+        <header className={`flex flex-col md:flex-row justify-between items-center gap-6 mb-8 pb-6 border-b ${activeTheme.border}`}>
           <div>
-            <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-violet-200 to-indigo-200">
+            <h1 className={`text-3xl font-extrabold tracking-tight ${activeTheme.headerText}`}>
               Bay Area Kids Activities
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className={`text-sm ${activeTheme.textMuted} mt-1`}>
               Curated kid-friendly activities, events, and outings in the San Jose / SF Bay Area.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Theme Selector */}
+            <div className="inline-flex rounded-xl bg-slate-900/60 border border-slate-800/40 p-0.5 shadow-sm">
+              <button
+                onClick={() => changeTheme('cosmo')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'cosmo' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                title="Cosmo Dark Mode"
+              >
+                🌌 Cosmo
+              </button>
+              <button
+                onClick={() => changeTheme('bubblegum')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'bubblegum' ? 'bg-pink-500 text-white' : 'text-slate-400 hover:text-slate-600'}`}
+                title="Bubblegum Light Mode"
+              >
+                🍬 Playful
+              </button>
+              <button
+                onClick={() => changeTheme('jungle')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'jungle' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-emerald-800'}`}
+                title="Jungle Adventure Mode"
+              >
+                🌴 Jungle
+              </button>
+            </div>
+
+            {/* View Selectors */}
             <div className="inline-flex rounded-xl bg-slate-900 border border-slate-800 p-0.5">
               <button
                 onClick={() => setViewMode('week')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'week' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${viewMode === 'week' ? activeTheme.activeTab : activeTheme.inactiveTab}`}
               >
                 Week
               </button>
               <button
                 onClick={() => setViewMode('weekend')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'weekend' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${viewMode === 'weekend' ? activeTheme.activeTab : activeTheme.inactiveTab}`}
               >
                 Weekend
               </button>
               <button
                 onClick={() => setViewMode('month')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'month' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${viewMode === 'month' ? activeTheme.activeTab : activeTheme.inactiveTab}`}
               >
                 Month
               </button>
               <button
                 onClick={() => setViewMode('map')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition ${viewMode === 'map' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${viewMode === 'map' ? activeTheme.activeTab : activeTheme.inactiveTab}`}
               >
                 Map
               </button>
             </div>
 
-            <a href="/admin" className="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300 hover:border-slate-700 transition">
+            <a href="/admin" className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
               Admin Area
             </a>
           </div>
         </header>
 
+        {/* Filters Toolbar */}
+        <div className={`flex flex-wrap gap-4 items-center justify-between p-4 mb-6 rounded-2xl border ${activeTheme.card} transition-all duration-300`}>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Age Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Age Range:</label>
+              <select
+                value={selectedAgeGroup}
+                onChange={(e) => setSelectedAgeGroup(e.target.value)}
+                className="rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs outline-none transition focus:border-violet-500 max-w-[160px] cursor-pointer"
+              >
+                <option value="all">👶 All Ages / Family</option>
+                <option value="infants">🤱 Infants (0-1 yrs)</option>
+                <option value="toddlers">🍼 Toddlers (2-4 yrs)</option>
+                <option value="preschoolers">🎨 Preschoolers (5-7 yrs)</option>
+                <option value="kids">🎒 Kids (8-12 yrs)</option>
+                <option value="teens">🛹 Teens (13+ yrs)</option>
+              </select>
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Category:</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs outline-none transition focus:border-violet-500 max-w-[160px] cursor-pointer"
+              >
+                <option value="all">✨ All Categories</option>
+                <option value="sports">⚽ Sports</option>
+                <option value="arts">🎭 Arts & Crafts</option>
+                <option value="nature">🌳 Nature & Outings</option>
+                <option value="music">🎵 Music & Dance</option>
+                <option value="education">🔬 Science & Learning</option>
+                <option value="festival">🍿 Festivals & Events</option>
+                <option value="other">💡 General/Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+            Showing {filteredEvents.length} activities
+          </div>
+        </div>
+
         {/* Date Navigator (Hidden in Map View since map shows all events) */}
         {viewMode !== 'map' && (
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-slate-200">
+            <h3 className="text-lg font-bold">
               {viewMode === 'week' 
                 ? `Week of ${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDates[13].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                 : viewMode === 'weekend'
@@ -304,78 +453,60 @@ export default function CalendarHome() {
                     const isToday = new Date().toDateString() === date.toDateString();
                     const visibleLimit = 3;
 
-                    // Filter ongoing programs active on this specific date
-                    const dateStr = formatLocalDateString(date);
-                    const activeProgramsThisDay = activeMultiDayEvents.filter(e => 
-                      e.startDate <= dateStr && e.endDate! >= dateStr
-                    );
-
                     return (
                       <div 
                         key={idx} 
                         className={`rounded-2xl border p-4 flex flex-col h-72 min-h-72 overflow-hidden backdrop-blur-sm transition hover:shadow-lg ${
                           isToday 
-                            ? 'border-violet-500/40 bg-violet-950/5 shadow-md shadow-violet-500/5' 
-                            : 'border-slate-900 bg-slate-900/10'
+                            ? 'border-violet-500/50 bg-violet-950/10 shadow-md shadow-violet-500/10' 
+                            : activeTheme.card
                         }`}
                       >
                         {/* Day header */}
-                        <div className="flex justify-between items-baseline mb-2">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider ${isToday ? 'text-violet-400' : 'text-slate-500'}`}>
-                            {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                          </span>
-                          <span className={`text-base font-bold ${isToday ? 'text-violet-400' : 'text-slate-300'}`}>
-                            {date.getDate()}
-                          </span>
-                        </div>
-
-                        {/* Ongoing Programs Spans */}
-                        {activeProgramsThisDay.length > 0 && (
-                          <div className="flex gap-1.5 mb-2.5 overflow-x-auto py-1 border-b border-slate-900 pb-1.5 scrollbar-none">
-                            {activeProgramsThisDay.map(prog => (
-                              <div
-                                key={prog.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedEvent(prog);
-                                }}
-                                className="px-2 py-0.5 rounded-full bg-violet-500/20 hover:bg-violet-500/30 text-[8px] font-extrabold text-violet-300 cursor-pointer border border-violet-500/10 transition truncate max-w-[80px]"
-                                title={`Ongoing: ${prog.title}`}
-                              >
-                                {prog.title}
-                              </div>
-                            ))}
+                        <div className="flex justify-between items-center mb-2 pb-1.5 border-b border-slate-200/10">
+                          <div className="flex flex-col">
+                            <span className={`text-[9px] font-extrabold uppercase tracking-widest ${isToday ? 'text-violet-500' : 'text-slate-500'}`}>
+                              {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                            </span>
+                            <span className={`text-base font-extrabold ${isToday ? 'text-violet-500' : 'text-slate-700 dark:text-slate-300'}`}>
+                              {date.getDate()}
+                            </span>
                           </div>
-                        )}
+                          {dayEvents.length > 0 && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-violet-600/90 text-white text-[8px] font-extrabold shadow-sm">
+                              {dayEvents.length} items
+                            </span>
+                          )}
+                        </div>
 
                         {/* Events list */}
                         <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                           {dayEvents.length === 0 ? (
-                            <div className="text-[10px] text-slate-600 italic py-4 text-center">No activities</div>
+                            <div className="text-[10px] text-slate-500 italic py-6 text-center">No activities</div>
                           ) : (
                             <>
+                              {dayEvents.length > visibleLimit && (
+                                <button
+                                  onClick={() => setSelectedDateForDetails(date)}
+                                  className="w-full py-1 mb-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-[9px] font-bold text-white shadow-sm transition active:scale-[0.98]"
+                                >
+                                  ⚡ +{dayEvents.length - visibleLimit} more activities
+                                </button>
+                              )}
                               {dayEvents.slice(0, visibleLimit).map(ev => (
                                 <div
                                   key={ev.id}
                                   onClick={() => setSelectedEvent(ev)}
-                                  className="p-2 rounded-xl border border-slate-800 bg-slate-950/80 cursor-pointer transition hover:border-slate-700 active:scale-[0.98] group"
+                                  className="p-2 rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white/70 dark:bg-slate-950/80 cursor-pointer transition hover:border-slate-400 dark:hover:border-slate-700 active:scale-[0.98] group"
                                 >
-                                  <div className="text-[11px] font-bold text-slate-200 line-clamp-2 leading-tight group-hover:text-violet-400 transition">
+                                  <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 line-clamp-2 leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition">
                                     {ev.title}
                                   </div>
-                                  <div className="flex items-center gap-1.5 mt-1.5 text-[9px] text-slate-500">
+                                  <div className="flex items-center gap-1.5 mt-1 text-[9px] text-slate-500">
                                     <span>{ev.startTime || 'All day'}</span>
                                   </div>
                                 </div>
                               ))}
-                              {dayEvents.length > visibleLimit && (
-                                <button
-                                  onClick={() => setSelectedDateForDetails(date)}
-                                  className="w-full py-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-[9px] font-bold text-white shadow-md shadow-violet-500/10 transition-all duration-150 hover:scale-[1.01]"
-                                >
-                                  +{dayEvents.length - visibleLimit} more activities
-                                </button>
-                              )}
                             </>
                           )}
                         </div>
@@ -391,62 +522,53 @@ export default function CalendarHome() {
                     const isToday = new Date().toDateString() === date.toDateString();
                     const visibleLimit = 5; // show more events in wide layout
 
-                    const dateStr = formatLocalDateString(date);
-                    const activeProgramsThisDay = activeMultiDayEvents.filter(e => 
-                      e.startDate <= dateStr && e.endDate! >= dateStr
-                    );
-
                     return (
                       <div 
                         key={idx} 
                         className={`rounded-2xl border p-6 flex flex-col h-[400px] min-h-[400px] overflow-hidden backdrop-blur-sm transition hover:shadow-xl ${
                           isToday 
-                            ? 'border-violet-500/50 bg-violet-950/5 shadow-md shadow-violet-500/5' 
-                            : 'border-slate-900 bg-slate-900/10'
+                            ? 'border-violet-500/50 bg-violet-950/10 shadow-md shadow-violet-500/10' 
+                            : activeTheme.card
                         }`}
                       >
                         {/* Day header */}
-                        <div className="flex justify-between items-baseline mb-4 border-b border-slate-900 pb-3">
-                          <span className={`text-xs font-bold uppercase tracking-widest ${isToday ? 'text-violet-400' : 'text-slate-400'}`}>
-                            {date.toLocaleDateString('en-US', { weekday: 'long' })}
-                          </span>
-                          <span className={`text-2xl font-extrabold ${isToday ? 'text-violet-400' : 'text-slate-200'}`}>
-                            {date.getDate()}
-                          </span>
-                        </div>
-
-                        {/* Ongoing Programs Spans */}
-                        {activeProgramsThisDay.length > 0 && (
-                          <div className="flex gap-2 mb-4 overflow-x-auto py-1 border-b border-slate-900/50 pb-3 scrollbar-none">
-                            {activeProgramsThisDay.map(prog => (
-                              <div
-                                key={prog.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedEvent(prog);
-                                }}
-                                className="px-2.5 py-1 rounded-full bg-violet-500/20 hover:bg-violet-500/30 text-[9px] font-extrabold text-violet-300 cursor-pointer border border-violet-500/10 transition truncate max-w-[120px]"
-                                title={`Ongoing: ${prog.title}`}
-                              >
-                                {prog.title}
-                              </div>
-                            ))}
+                        <div className="flex justify-between items-center mb-4 border-b border-slate-200/10 pb-3">
+                          <div className="flex flex-col">
+                            <span className={`text-xs font-bold uppercase tracking-widest ${isToday ? 'text-violet-500' : 'text-slate-400'}`}>
+                              {date.toLocaleDateString('en-US', { weekday: 'long' })}
+                            </span>
+                            <span className={`text-2xl font-extrabold ${isToday ? 'text-violet-500' : 'text-slate-800 dark:text-slate-200'}`}>
+                              {date.getDate()}
+                            </span>
                           </div>
-                        )}
+                          {dayEvents.length > 0 && (
+                            <span className="px-2.5 py-1 rounded-full bg-violet-600/90 text-white text-xs font-extrabold shadow-sm">
+                              {dayEvents.length} activities
+                            </span>
+                          )}
+                        </div>
 
                         {/* Events list */}
                         <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
                           {dayEvents.length === 0 ? (
-                            <div className="text-xs text-slate-600 italic py-10 text-center">No weekend activities</div>
+                            <div className="text-xs text-slate-500 italic py-12 text-center">No weekend activities</div>
                           ) : (
                             <>
+                              {dayEvents.length > visibleLimit && (
+                                <button
+                                  onClick={() => setSelectedDateForDetails(date)}
+                                  className="w-full py-1.5 mb-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white shadow-sm transition active:scale-[0.98]"
+                                >
+                                  ⚡ +{dayEvents.length - visibleLimit} more activities today
+                                </button>
+                              )}
                               {dayEvents.slice(0, visibleLimit).map(ev => (
                                 <div
                                   key={ev.id}
                                   onClick={() => setSelectedEvent(ev)}
-                                  className="p-3 rounded-xl border border-slate-800 bg-slate-950/80 cursor-pointer transition hover:border-slate-700 active:scale-[0.98] group"
+                                  className="p-3 rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white/70 dark:bg-slate-950/80 cursor-pointer transition hover:border-slate-400 dark:hover:border-slate-700 active:scale-[0.98] group"
                                 >
-                                  <div className="text-xs font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-violet-400 transition">
+                                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-2 leading-snug group-hover:text-violet-600 dark:group-hover:text-violet-400 transition">
                                     {ev.title}
                                   </div>
                                   <div className="flex justify-between items-center mt-2.5 text-[10px] text-slate-500">
@@ -455,14 +577,6 @@ export default function CalendarHome() {
                                   </div>
                                 </div>
                               ))}
-                              {dayEvents.length > visibleLimit && (
-                                <button
-                                  onClick={() => setSelectedDateForDetails(date)}
-                                  className="w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white shadow-md shadow-violet-500/10 transition-all duration-150 hover:scale-[1.01]"
-                                >
-                                  +{dayEvents.length - visibleLimit} more activities
-                                </button>
-                              )}
                             </>
                           )}
                         </div>
@@ -472,9 +586,9 @@ export default function CalendarHome() {
                 </div>
               ) : (
                 /* Month View Grid */
-                <div className="grid grid-cols-7 border border-slate-900 rounded-2xl overflow-hidden bg-slate-950/20 divide-y divide-slate-900 divide-x divide-slate-900 shadow-md">
+                <div className={`grid grid-cols-7 border ${activeTheme.border} rounded-2xl overflow-hidden bg-slate-950/20 divide-y ${activeTheme.border.replace('border-', 'divide-')} divide-x ${activeTheme.border.replace('border-', 'divide-')} shadow-md`}>
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-950/60 border-slate-900">
+                    <div key={day} className="py-2 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-950/40">
                       {day}
                     </div>
                   ))}
@@ -493,7 +607,7 @@ export default function CalendarHome() {
                         } ${isCurrentMonth ? '' : 'opacity-35'}`}
                       >
                         <div className="flex justify-between items-baseline mb-1">
-                          <span className={`text-[10px] font-bold ${isToday ? 'text-violet-400' : 'text-slate-500'}`}>
+                          <span className={`text-[10px] font-bold ${isToday ? 'text-violet-500' : 'text-slate-500'}`}>
                             {date.getDate()}
                           </span>
                         </div>
@@ -503,7 +617,7 @@ export default function CalendarHome() {
                             <div
                               key={ev.id}
                               onClick={() => setSelectedEvent(ev)}
-                              className="px-1.5 py-0.5 rounded text-[9px] font-medium border border-slate-800 bg-slate-950 text-slate-300 truncate cursor-pointer hover:border-slate-700 transition"
+                              className="px-1.5 py-0.5 rounded text-[9px] font-medium border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 truncate cursor-pointer hover:border-slate-400 dark:hover:border-slate-700 transition"
                               title={ev.title}
                             >
                               {ev.title}
@@ -512,7 +626,7 @@ export default function CalendarHome() {
                           {dayEvents.length > visibleLimit && (
                             <button
                               onClick={() => setSelectedDateForDetails(date)}
-                              className="w-full text-center text-[8px] font-bold text-violet-400 hover:text-violet-300 mt-1"
+                              className="w-full text-center text-[8px] font-bold text-violet-500 hover:text-violet-600 mt-1"
                             >
                               +{dayEvents.length - visibleLimit} more
                             </button>
@@ -533,7 +647,7 @@ export default function CalendarHome() {
               </div>
 
               {activeMultiDayEvents.length === 0 ? (
-                <div className="text-center py-10 border border-dashed border-slate-900 rounded-2xl text-slate-500 text-xs">
+                <div className={`text-center py-10 border border-dashed ${activeTheme.border} rounded-2xl text-slate-500 text-xs`}>
                   No active multi-day programs in this range.
                 </div>
               ) : (
@@ -542,25 +656,25 @@ export default function CalendarHome() {
                     <div
                       key={ev.id}
                       onClick={() => setSelectedEvent(ev)}
-                      className="p-4 rounded-2xl border border-slate-900 bg-slate-900/10 hover:border-slate-800 hover:bg-slate-900/30 cursor-pointer shadow-md transition group"
+                      className={`p-4 rounded-2xl border cursor-pointer shadow-md transition group ${activeTheme.card}`}
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <span className={`inline-block border px-1.5 py-0.5 rounded text-[8px] font-semibold uppercase tracking-wider ${categoryColors[ev.category] || categoryColors.other}`}>
                           {ev.category}
                         </span>
-                        <span className="text-[9px] text-slate-500">
+                        <span className="text-[9px] text-slate-500 font-medium">
                           {ev.startDate} to {ev.endDate}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-200 group-hover:text-violet-400 transition leading-snug">
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition leading-snug">
                         {ev.title}
                       </h4>
-                      <p className="text-[10px] text-slate-400 mt-2 line-clamp-3 leading-relaxed">
+                      <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-2 line-clamp-3 leading-relaxed">
                         {ev.description}
                       </p>
                       <div className="mt-3 flex justify-between items-center text-[9px] text-slate-500">
-                        <span>📍 {ev.location?.split(',')[0] || 'Multiple Locations'}</span>
-                        <span className="font-semibold text-slate-300">{ev.cost || 'Free'}</span>
+                        <span className="font-medium">📍 {ev.location?.split(',')[0] || 'Multiple Locations'}</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-300">{ev.cost || 'Free'}</span>
                       </div>
                     </div>
                   ))}

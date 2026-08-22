@@ -19,6 +19,7 @@ interface Event {
   endTime: string | null;
   location: string | null;
   ageRange: string | null;
+  ageGroup?: string;
   category: string;
   cost: string | null;
   isFree: boolean;
@@ -308,6 +309,29 @@ export default function ReviewQueue() {
                               <div className="text-xs text-slate-300">{ev.ageRange || 'All ages'}</div>
                             )}
                           </div>
+                        </div>
+
+                        {/* Age Group Structured Filter Enum */}
+                        <div>
+                          <label className="block text-[10px] font-medium text-slate-500 uppercase tracking-wider mb-1">Structured Age Filter</label>
+                          {isEditing ? (
+                            <select
+                              value={currentData.ageGroup || 'all'}
+                              onChange={(e) => handleFormChange('ageGroup', e.target.value)}
+                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                            >
+                              <option value="infants">Infants (0-1 yrs)</option>
+                              <option value="toddlers">Toddlers (2-4 yrs)</option>
+                              <option value="preschoolers">Preschoolers (5-7 yrs)</option>
+                              <option value="kids">Kids (8-12 yrs)</option>
+                              <option value="teens">Teens (13+ yrs)</option>
+                              <option value="all">All Ages / Family</option>
+                            </select>
+                          ) : (
+                            <span className="inline-block rounded bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400 border border-violet-500/20 uppercase tracking-wider">
+                              {ev.ageGroup || 'all'}
+                            </span>
+                          )}
                         </div>
 
                         {/* Cost & Free state */}

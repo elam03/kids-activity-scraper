@@ -37,6 +37,7 @@ model Event {
   endTime         String?  // Format: HH:MM
   location        String?
   ageRange        String?
+  ageGroup        String   @default("all") // infants | toddlers | preschoolers | kids | teens | all
   category        String   // sports | arts | nature | music | education | festival | other
   cost            String?
   isFree          Boolean  @default(false)
