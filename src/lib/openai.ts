@@ -164,7 +164,9 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
       const isSouthBay = southBayCities.some(city => eventLocation.includes(city));
       
       // Default to "approved" if confidence is high AND it's in the South Bay, otherwise route to "pending" review queue
-      let status = parsed.confidence >= 0.8 && isSouthBay ? "approved" : "pending";
+      // Enforce pending status for manual flyer uploads so admins can review the vision parser output.
+      const isManual = postUrl.startsWith('https://manual-upload/');
+      let status = parsed.confidence >= 0.8 && isSouthBay && !isManual ? "approved" : "pending";
 
       // 3. Server-side Geocode Coordinates Resolution
       const coords = rawEvent.location ? await geocodeLocation(rawEvent.location) : null;
