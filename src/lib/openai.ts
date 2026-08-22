@@ -24,6 +24,10 @@ export interface ExtractionResult {
 
 // Download image CDN url and return as base64 data URL
 async function downloadImageAsBase64(url: string): Promise<string> {
+  if (url.startsWith('data:image/')) {
+    return url;
+  }
+
   const response = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
