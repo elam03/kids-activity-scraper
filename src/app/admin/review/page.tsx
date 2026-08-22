@@ -85,46 +85,155 @@ export default function ReviewQueue() {
     }
   };
 
+const themeClasses = {
+  cosmo: {
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 flex flex-col justify-between transition-all duration-300',
+    text: 'text-slate-100',
+    textHeading: 'text-slate-100',
+    textMuted: 'text-slate-400',
+    card: 'bg-slate-900/10 border-slate-900 hover:border-slate-800',
+    cardAlt: 'bg-slate-950/80 border-slate-800 hover:border-slate-700',
+    cardBorder: 'border-slate-900',
+    cardText: 'text-slate-300',
+    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-violet-200 to-indigo-200',
+    navBtn: 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300',
+    badge: 'bg-slate-800 text-slate-300',
+    activeTab: 'bg-violet-600 text-white',
+    inactiveTab: 'text-slate-400 hover:text-slate-200',
+    border: 'border-slate-900',
+    modal: 'bg-slate-900 border-slate-800 text-slate-100',
+    modalInner: 'bg-slate-950/40 border-slate-900 text-slate-300',
+    modalTitle: 'text-slate-100',
+    closeBtn: 'text-slate-400 hover:text-slate-200 hover:bg-slate-800',
+    accentText: 'text-slate-200',
+    input: 'bg-slate-950 text-slate-100 border-slate-800 focus:border-violet-500',
+  },
+  bubblegum: {
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 flex flex-col justify-between transition-all duration-300',
+    text: 'text-slate-800',
+    textHeading: 'text-purple-950',
+    textMuted: 'text-purple-900/70',
+    card: 'bg-white/80 border-purple-200/60 shadow-purple-500/5 hover:border-purple-300/80 hover:bg-white',
+    cardAlt: 'bg-white border-purple-200 hover:border-purple-300',
+    cardBorder: 'border-purple-100',
+    cardText: 'text-slate-600',
+    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 font-extrabold',
+    navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-slate-700',
+    badge: 'bg-purple-100 text-purple-700',
+    activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
+    inactiveTab: 'text-purple-600/70 hover:text-purple-700',
+    border: 'border-purple-100',
+    modal: 'bg-white border-purple-200 text-slate-800 shadow-2xl shadow-purple-500/10',
+    modalInner: 'bg-purple-50/55 border-purple-100 text-slate-700',
+    modalTitle: 'text-purple-950 font-bold',
+    closeBtn: 'text-purple-400 hover:text-purple-600 hover:bg-purple-50',
+    accentText: 'text-purple-900 font-semibold',
+    input: 'bg-white text-purple-950 border-purple-200 focus:border-purple-500',
+  },
+  jungle: {
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
+    text: 'text-emerald-950',
+    textHeading: 'text-emerald-950',
+    textMuted: 'text-emerald-800/70',
+    card: 'bg-white/90 border-emerald-200/60 shadow-emerald-500/5 hover:border-emerald-300/80 hover:bg-white',
+    cardAlt: 'bg-white border-emerald-200 hover:border-emerald-300',
+    cardBorder: 'border-emerald-100',
+    cardText: 'text-emerald-800',
+    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-amber-700 font-extrabold',
+    navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900',
+    badge: 'bg-emerald-100 text-emerald-800',
+    activeTab: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20',
+    inactiveTab: 'text-emerald-700/70 hover:text-emerald-800',
+    border: 'border-emerald-100',
+    modal: 'bg-white border-emerald-200 text-emerald-950 shadow-2xl shadow-emerald-500/10',
+    modalInner: 'bg-emerald-50/55 border-emerald-100 text-emerald-900',
+    modalTitle: 'text-emerald-950 font-bold',
+    closeBtn: 'text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50',
+    accentText: 'text-emerald-900 font-semibold',
+    input: 'bg-white text-emerald-950 border-emerald-200 focus:border-emerald-500',
+  }
+};
+
+  const [theme, setTheme] = useState<'cosmo' | 'bubblegum' | 'jungle'>('cosmo');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('calendar-theme');
+    if (savedTheme && ['cosmo', 'bubblegum', 'jungle'].includes(savedTheme)) {
+      setTheme(savedTheme as any);
+    }
+  }, []);
+
+  const changeTheme = (newTheme: 'cosmo' | 'bubblegum' | 'jungle') => {
+    setTheme(newTheme);
+    localStorage.setItem('calendar-theme', newTheme);
+  };
+
+  const activeTheme = themeClasses[theme] || themeClasses.cosmo;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className={activeTheme.bg}>
       {/* Top Navbar */}
-      <header className="border-b border-slate-900 bg-slate-950/80 sticky top-0 z-10 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <header className={`border-b ${activeTheme.border} bg-slate-950/20 sticky top-0 z-10 backdrop-blur-md`}>
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-md shadow-violet-500/10">
               <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 to-slate-300">
+            <h1 className={`text-xl font-bold tracking-tight ${activeTheme.textHeading}`}>
               Kids Calendar Admin
             </h1>
           </div>
           
-          <nav className="flex gap-4">
-            <Link href="/admin" className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 transition">
-              Dashboard
-            </Link>
-            <Link href="/admin/review" className="px-4 py-2 rounded-xl text-sm font-medium bg-slate-900 border border-slate-800 text-slate-200">
-              Review Queue
-            </Link>
-            <Link href="/" className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 transition">
-              View Calendar
-            </Link>
-          </nav>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Theme Selector */}
+            <div className="inline-flex rounded-xl bg-slate-900/60 border border-slate-800/40 p-0.5 shadow-sm">
+              <button
+                onClick={() => changeTheme('cosmo')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'cosmo' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                🌌 Cosmo
+              </button>
+              <button
+                onClick={() => changeTheme('bubblegum')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'bubblegum' ? 'bg-pink-500 text-white' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                🍬 Playful
+              </button>
+              <button
+                onClick={() => changeTheme('jungle')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'jungle' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-emerald-800'}`}
+              >
+                🌴 Jungle
+              </button>
+            </div>
+
+            <nav className="flex gap-3">
+              <Link href="/admin" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                Dashboard
+              </Link>
+              <Link href="/admin/review" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                Review Queue
+              </Link>
+              <Link href="/" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                View Calendar
+              </Link>
+            </nav>
+          </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex-1">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-slate-200">Review Queue</h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <h2 className={`text-2xl font-bold ${activeTheme.textHeading}`}>Review Queue</h2>
+            <p className={`text-sm ${activeTheme.textMuted} mt-1`}>
               Verify and polish low-confidence extractions before they publish.
             </p>
           </div>
-          <span className="rounded-full bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400 border border-violet-500/20">
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold border ${activeTheme.badge}`}>
             {events.length} pending items
           </span>
         </div>
@@ -151,30 +260,30 @@ export default function ReviewQueue() {
               const currentData = isEditing ? editForm : ev;
 
               return (
-                <div key={ev.id} className="rounded-2xl border border-slate-900 bg-slate-900/10 overflow-hidden grid grid-cols-1 md:grid-cols-2 shadow-md">
+                <div key={ev.id} className={`rounded-2xl border overflow-hidden grid grid-cols-1 md:grid-cols-2 shadow-md ${activeTheme.card}`}>
                   {/* Left Side: Original Post / Caption */}
-                  <div className="p-6 border-b md:border-b-0 md:border-r border-slate-900 bg-slate-950/20 flex flex-col justify-between">
+                  <div className={`p-6 border-b md:border-b-0 md:border-r flex flex-col justify-between ${activeTheme.border} ${activeTheme.cardAlt}`}>
                     <div>
                       <div className="flex items-center gap-2 mb-4">
-                        <span className="text-xs font-semibold text-violet-400">@{ev.source.handle}</span>
-                        <span className="text-[10px] text-slate-500">•</span>
+                        <span className="text-xs font-semibold text-violet-500">@{ev.source.handle}</span>
+                        <span className="text-[10px] text-slate-400">•</span>
                         <a 
                           href={ev.rawPostUrl} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="text-[10px] text-slate-400 hover:text-slate-200 underline"
+                          className="text-[10px] text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline"
                         >
                           View Original Instagram Post
                         </a>
                       </div>
-                      <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider mb-2">Caption Content</h4>
-                      <p className="text-xs text-slate-300 leading-relaxed max-h-80 overflow-y-auto whitespace-pre-wrap pr-2">
+                      <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Caption Content</h4>
+                      <p className={`text-xs leading-relaxed max-h-80 overflow-y-auto whitespace-pre-wrap pr-2 ${activeTheme.cardText}`}>
                         {ev.rawCaption}
                       </p>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-slate-900 flex justify-between items-center">
-                      <span className="text-[10px] text-slate-500">
-                        Confidence: <span className="font-mono text-slate-300">{(ev.confidence * 100).toFixed(0)}%</span>
+                    <div className={`mt-6 pt-4 border-t flex justify-between items-center ${activeTheme.border}`}>
+                      <span className="text-[10px] text-slate-500 font-medium">
+                        Confidence: <span className={`font-mono ${activeTheme.accentText}`}>{(ev.confidence * 100).toFixed(0)}%</span>
                       </span>
                     </div>
                   </div>
@@ -183,11 +292,11 @@ export default function ReviewQueue() {
                   <div className="p-6 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-xs font-semibold uppercase text-slate-500 tracking-wider">Extracted Event</h4>
+                        <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider">Extracted Event</h4>
                         {!isEditing && (
                           <button
                             onClick={() => startEdit(ev)}
-                            className="text-xs text-violet-400 hover:text-violet-300 transition"
+                            className="text-xs text-violet-500 hover:text-violet-600 font-bold transition"
                           >
                             Edit Fields
                           </button>
@@ -203,10 +312,10 @@ export default function ReviewQueue() {
                               type="text"
                               value={currentData.title || ''}
                               onChange={(e) => handleFormChange('title', e.target.value)}
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                             />
                           ) : (
-                            <div className="text-sm font-semibold text-slate-200">{ev.title}</div>
+                            <div className={`text-sm font-bold ${activeTheme.textHeading}`}>{ev.title}</div>
                           )}
                         </div>
 
@@ -219,10 +328,10 @@ export default function ReviewQueue() {
                                 type="date"
                                 value={currentData.startDate || ''}
                                 onChange={(e) => handleFormChange('startDate', e.target.value)}
-                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                                className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                               />
                             ) : (
-                              <div className="text-xs text-slate-300">{ev.startDate}</div>
+                              <div className={`text-xs ${activeTheme.cardText}`}>{ev.startDate}</div>
                             )}
                           </div>
                           <div>
@@ -232,10 +341,10 @@ export default function ReviewQueue() {
                                 type="date"
                                 value={currentData.endDate || ''}
                                 onChange={(e) => handleFormChange('endDate', e.target.value)}
-                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                                className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                               />
                             ) : (
-                              <div className="text-xs text-slate-300">{ev.endDate || 'Single day'}</div>
+                              <div className={`text-xs ${activeTheme.cardText}`}>{ev.endDate || 'Single day'}</div>
                             )}
                           </div>
                         </div>
@@ -249,10 +358,10 @@ export default function ReviewQueue() {
                                 placeholder="e.g. 10:00"
                                 value={currentData.startTime || ''}
                                 onChange={(e) => handleFormChange('startTime', e.target.value)}
-                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                                className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                               />
                             ) : (
-                              <div className="text-xs text-slate-300">{ev.startTime || 'Not specified'}</div>
+                              <div className={`text-xs ${activeTheme.cardText}`}>{ev.startTime || 'Not specified'}</div>
                             )}
                           </div>
                           <div>
@@ -263,10 +372,10 @@ export default function ReviewQueue() {
                                 placeholder="e.g. 14:00"
                                 value={currentData.endTime || ''}
                                 onChange={(e) => handleFormChange('endTime', e.target.value)}
-                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                                className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                               />
                             ) : (
-                              <div className="text-xs text-slate-300">{ev.endTime || 'Not specified'}</div>
+                              <div className={`text-xs ${activeTheme.cardText}`}>{ev.endTime || 'Not specified'}</div>
                             )}
                           </div>
                         </div>
@@ -279,7 +388,7 @@ export default function ReviewQueue() {
                               <select
                                 value={currentData.category || 'other'}
                                 onChange={(e) => handleFormChange('category', e.target.value)}
-                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                                className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                               >
                                 <option value="sports">Sports</option>
                                 <option value="arts">Arts</option>
@@ -290,7 +399,7 @@ export default function ReviewQueue() {
                                 <option value="other">Other</option>
                               </select>
                             ) : (
-                              <span className="inline-block rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300 uppercase tracking-wider">
+                              <span className="inline-block rounded bg-violet-100 dark:bg-violet-900/40 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:text-violet-300 uppercase tracking-wider">
                                 {ev.category}
                               </span>
                             )}
@@ -303,10 +412,10 @@ export default function ReviewQueue() {
                                 placeholder="e.g. 0-4 years"
                                 value={currentData.ageRange || ''}
                                 onChange={(e) => handleFormChange('ageRange', e.target.value)}
-                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                                className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                               />
                             ) : (
-                              <div className="text-xs text-slate-300">{ev.ageRange || 'All ages'}</div>
+                              <div className={`text-xs ${activeTheme.cardText}`}>{ev.ageRange || 'All ages'}</div>
                             )}
                           </div>
                         </div>
@@ -318,7 +427,7 @@ export default function ReviewQueue() {
                             <select
                               value={currentData.ageGroup || 'all'}
                               onChange={(e) => handleFormChange('ageGroup', e.target.value)}
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                             >
                               <option value="infants">Infants (0-1 yrs)</option>
                               <option value="toddlers">Toddlers (2-4 yrs)</option>
@@ -328,7 +437,7 @@ export default function ReviewQueue() {
                               <option value="all">All Ages / Family</option>
                             </select>
                           ) : (
-                            <span className="inline-block rounded bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-400 border border-violet-500/20 uppercase tracking-wider">
+                            <span className={`inline-block rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border ${activeTheme.badge}`}>
                               {ev.ageGroup || 'all'}
                             </span>
                           )}
@@ -344,25 +453,25 @@ export default function ReviewQueue() {
                                 placeholder="e.g. Free or $15"
                                 value={currentData.cost || ''}
                                 onChange={(e) => handleFormChange('cost', e.target.value)}
-                                className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                                className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                               />
                             ) : (
-                              <div className="text-xs text-slate-300">{ev.cost || 'Free'}</div>
+                              <div className={`text-xs ${activeTheme.cardText}`}>{ev.cost || 'Free'}</div>
                             )}
                           </div>
                           <div className="flex items-center pt-4">
                             {isEditing ? (
-                              <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                              <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
                                 <input
                                   type="checkbox"
                                   checked={!!currentData.isFree}
                                   onChange={(e) => handleFormChange('isFree', e.target.checked)}
-                                  className="rounded border-slate-800 bg-slate-950 text-violet-600 focus:ring-violet-500"
+                                  className="rounded border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-950 text-violet-600 focus:ring-violet-500"
                                 />
-                                <span>Mark as Free Event</span>
+                                <span className="text-slate-500 font-semibold">Mark as Free Event</span>
                               </label>
                             ) : (
-                              <div className="text-xs text-slate-300">
+                              <div className={`text-xs ${activeTheme.cardText}`}>
                                 {ev.isFree ? '🏷️ Marked Free' : '💵 Paid'}
                               </div>
                             )}
@@ -377,20 +486,20 @@ export default function ReviewQueue() {
                               type="text"
                               value={currentData.location || ''}
                               onChange={(e) => handleFormChange('location', e.target.value)}
-                              className="w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-200 outline-none transition focus:border-violet-500"
+                              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition ${activeTheme.input}`}
                             />
                           ) : (
-                            <div className="text-xs text-slate-300">{ev.location || 'Not specified'}</div>
+                            <div className={`text-xs ${activeTheme.cardText}`}>{ev.location || 'Not specified'}</div>
                           )}
                         </div>
                       </div>
                     </div>
 
                     {/* Action Panel Buttons */}
-                    <div className="mt-8 pt-4 border-t border-slate-900 flex justify-end gap-3">
+                    <div className={`mt-8 pt-4 border-t flex justify-end gap-3 ${activeTheme.border}`}>
                       <button
                         onClick={() => saveEventStatus(ev.id, 'rejected')}
-                        className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent transition"
+                        className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-red-500 hover:bg-red-500/10 border border-transparent transition"
                       >
                         Reject Event
                       </button>

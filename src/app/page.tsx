@@ -233,6 +233,10 @@ export default function CalendarHome() {
       modalTitle: 'text-slate-100',
       closeBtn: 'text-slate-400 hover:text-slate-200 hover:bg-slate-800',
       accentText: 'text-slate-200',
+      input: 'bg-slate-950 text-slate-100 border-slate-800 focus:border-violet-500',
+      chevron: 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200',
+      viewSelectBg: 'bg-slate-900 border-slate-800',
+      btnMore: 'bg-violet-600 hover:bg-violet-500 text-white shadow-md shadow-violet-500/10',
     },
     bubblegum: {
       bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 flex flex-col justify-between transition-all duration-300',
@@ -244,7 +248,7 @@ export default function CalendarHome() {
       cardBorder: 'border-purple-100',
       cardText: 'text-slate-600',
       headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 font-extrabold',
-      navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-slate-700',
+      navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-purple-700',
       badge: 'bg-purple-100 text-purple-700',
       activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
       inactiveTab: 'text-purple-600/70 hover:text-purple-700',
@@ -254,6 +258,10 @@ export default function CalendarHome() {
       modalTitle: 'text-purple-950 font-bold',
       closeBtn: 'text-purple-400 hover:text-purple-600 hover:bg-purple-50',
       accentText: 'text-purple-900 font-semibold',
+      input: 'bg-white text-purple-950 border-purple-200 focus:border-purple-500',
+      chevron: 'bg-white border-purple-200 hover:border-purple-300 text-purple-600 hover:text-purple-700',
+      viewSelectBg: 'bg-purple-100/70 border-purple-200/60',
+      btnMore: 'bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-500/20',
     },
     jungle: {
       bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
@@ -263,7 +271,7 @@ export default function CalendarHome() {
       card: 'bg-white/90 border-emerald-200/60 shadow-emerald-500/5 hover:border-emerald-300/80 hover:bg-white',
       cardAlt: 'bg-white border-emerald-200 hover:border-emerald-300',
       cardBorder: 'border-emerald-100',
-      cardText: 'text-emerald-800',
+      cardText: 'text-emerald-850',
       headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-amber-700 font-extrabold',
       navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900',
       badge: 'bg-emerald-100 text-emerald-800',
@@ -275,6 +283,10 @@ export default function CalendarHome() {
       modalTitle: 'text-emerald-950 font-bold',
       closeBtn: 'text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50',
       accentText: 'text-emerald-900 font-semibold',
+      input: 'bg-white text-emerald-950 border-emerald-200 focus:border-emerald-500',
+      chevron: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-700 hover:text-emerald-800',
+      viewSelectBg: 'bg-emerald-100/70 border-emerald-200/60',
+      btnMore: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-500/20',
     }
   };
 
@@ -321,7 +333,7 @@ export default function CalendarHome() {
             </div>
 
             {/* View Selectors */}
-            <div className="inline-flex rounded-xl bg-slate-900 border border-slate-800 p-0.5">
+            <div className={`inline-flex rounded-xl p-0.5 ${activeTheme.viewSelectBg}`}>
               <button
                 onClick={() => setViewMode('week')}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${viewMode === 'week' ? activeTheme.activeTab : activeTheme.inactiveTab}`}
@@ -363,7 +375,7 @@ export default function CalendarHome() {
               <select
                 value={selectedAgeGroup}
                 onChange={(e) => setSelectedAgeGroup(e.target.value)}
-                className="rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs outline-none transition focus:border-violet-500 max-w-[160px] cursor-pointer"
+                className={`rounded-xl border px-3 py-1.5 text-xs outline-none transition max-w-[160px] cursor-pointer ${activeTheme.input}`}
               >
                 <option value="all">👶 All Ages / Family</option>
                 <option value="infants">🤱 Infants (0-1 yrs)</option>
@@ -380,7 +392,7 @@ export default function CalendarHome() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-1.5 text-xs outline-none transition focus:border-violet-500 max-w-[160px] cursor-pointer"
+                className={`rounded-xl border px-3 py-1.5 text-xs outline-none transition max-w-[160px] cursor-pointer ${activeTheme.input}`}
               >
                 <option value="all">✨ All Categories</option>
                 <option value="sports">⚽ Sports</option>
@@ -402,7 +414,7 @@ export default function CalendarHome() {
         {/* Date Navigator (Hidden in Map View since map shows all events) */}
         {viewMode !== 'map' && (
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold">
+            <h3 className={`text-lg font-bold ${activeTheme.textHeading}`}>
               {viewMode === 'week' 
                 ? `Week of ${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDates[13].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                 : viewMode === 'weekend'
@@ -413,7 +425,7 @@ export default function CalendarHome() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => changePivotDate(-1)}
-                className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 transition"
+                className={`p-2 rounded-lg border transition ${activeTheme.chevron}`}
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -421,13 +433,13 @@ export default function CalendarHome() {
               </button>
               <button
                 onClick={() => setCurrentPivotDate(new Date())}
-                className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-medium text-slate-300 transition"
+                className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition ${activeTheme.chevron}`}
               >
                 Today
               </button>
               <button
                 onClick={() => changePivotDate(1)}
-                className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 transition"
+                className={`p-2 rounded-lg border transition ${activeTheme.chevron}`}
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -491,7 +503,7 @@ export default function CalendarHome() {
                             </span>
                           </div>
                           {dayEvents.length > 0 && (
-                            <span className="px-1.5 py-0.5 rounded-full bg-violet-600/90 text-white text-[8px] font-extrabold shadow-sm">
+                            <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-extrabold shadow-sm ${activeTheme.badge}`}>
                               {dayEvents.length} items
                             </span>
                           )}
@@ -506,7 +518,7 @@ export default function CalendarHome() {
                               {dayEvents.length > visibleLimit && (
                                 <button
                                   onClick={() => setSelectedDateForDetails(date)}
-                                  className="w-full py-1 mb-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-[9px] font-bold text-white shadow-sm transition active:scale-[0.98]"
+                                  className={`w-full py-1 mb-1.5 rounded-lg text-[9px] font-bold transition active:scale-[0.98] ${activeTheme.btnMore}`}
                                 >
                                   ⚡ +{dayEvents.length - visibleLimit} more activities
                                 </button>
@@ -560,7 +572,7 @@ export default function CalendarHome() {
                             </span>
                           </div>
                           {dayEvents.length > 0 && (
-                            <span className="px-2.5 py-1 rounded-full bg-violet-600/90 text-white text-xs font-extrabold shadow-sm">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold shadow-sm ${activeTheme.badge}`}>
                               {dayEvents.length} activities
                             </span>
                           )}
@@ -575,7 +587,7 @@ export default function CalendarHome() {
                               {dayEvents.length > visibleLimit && (
                                 <button
                                   onClick={() => setSelectedDateForDetails(date)}
-                                  className="w-full py-1.5 mb-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white shadow-sm transition active:scale-[0.98]"
+                                  className={`w-full py-1.5 mb-2 rounded-xl text-xs font-bold transition active:scale-[0.98] ${activeTheme.btnMore}`}
                                 >
                                   ⚡ +{dayEvents.length - visibleLimit} more activities today
                                 </button>
@@ -684,7 +696,7 @@ export default function CalendarHome() {
                           {ev.startDate} to {ev.endDate}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition leading-snug">
+                      <h4 className={`text-xs font-bold group-hover:text-violet-600 dark:group-hover:text-violet-400 transition leading-snug ${activeTheme.textHeading}`}>
                         {ev.title}
                       </h4>
                       <p className="text-[10px] text-slate-600 dark:text-slate-400 mt-2 line-clamp-3 leading-relaxed">

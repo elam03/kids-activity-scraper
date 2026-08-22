@@ -351,7 +351,7 @@ function SourcesManager({ activeTheme }: { activeTheme: any }) {
                       <button
                         onClick={() => triggerSingleSourceIngest(src.id, src.handle, 20)}
                         disabled={ingesting || scrapingSourceId !== null}
-                        className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 disabled:opacity-50 text-[11px] font-semibold text-slate-300 transition active:scale-[0.98]"
+                        className={`px-2.5 py-1.5 rounded-lg disabled:opacity-50 text-[11px] font-semibold transition active:scale-[0.98] ${activeTheme.deepScrapeBtn}`}
                       >
                         Deep Scrape
                       </button>
@@ -388,14 +388,14 @@ function SourcesManager({ activeTheme }: { activeTheme: any }) {
             <h3 className={`text-lg font-semibold mb-4 ${activeTheme.textHeading}`}>Add New Instagram Account</h3>
             <form onSubmit={handleAddSource} className="flex flex-col sm:flex-row gap-4 items-end">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-slate-500 mb-1">Instagram Handle</label>
+                <label className={`block text-xs font-medium mb-1 ${activeTheme.textMuted}`}>Instagram Handle</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. bayarea_toddlerexplorer"
                   value={newHandle}
                   onChange={(e) => setNewHandle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm outline-none transition focus:border-violet-500"
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition ${activeTheme.input}`}
                 />
               </div>
               <div>
@@ -577,7 +577,7 @@ function SourcesManager({ activeTheme }: { activeTheme: any }) {
 
 const themeClasses = {
   cosmo: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 flex flex-col justify-between transition-all duration-300',
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 transition-all duration-300',
     text: 'text-slate-100',
     textHeading: 'text-slate-100',
     textMuted: 'text-slate-400',
@@ -593,9 +593,15 @@ const themeClasses = {
     border: 'border-slate-900',
     activeSubTab: 'border-violet-500 text-violet-400',
     inactiveSubTab: 'border-transparent text-slate-400 hover:text-slate-200',
+    input: 'border-slate-800 bg-slate-950 text-slate-100 placeholder:text-slate-600 focus:border-violet-500',
+    deepScrapeBtn: 'bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300',
+    themePicker: 'bg-slate-900/60 border-slate-800/40',
+    themePickerInactive: 'text-slate-400 hover:text-slate-200',
+    modalInner: 'bg-slate-900/40 border-slate-800',
+    accentText: 'text-violet-400',
   },
   bubblegum: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 flex flex-col justify-between transition-all duration-300',
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 transition-all duration-300',
     text: 'text-slate-800',
     textHeading: 'text-purple-950',
     textMuted: 'text-purple-900/70',
@@ -611,9 +617,15 @@ const themeClasses = {
     border: 'border-purple-100',
     activeSubTab: 'border-purple-600 text-purple-700',
     inactiveSubTab: 'border-transparent text-purple-600/60 hover:text-purple-700',
+    input: 'border-purple-200 bg-white text-slate-800 placeholder:text-purple-300 focus:border-purple-500',
+    deepScrapeBtn: 'bg-white border border-purple-200 hover:border-purple-400 text-purple-800',
+    themePicker: 'bg-white/70 border-purple-200/60',
+    themePickerInactive: 'text-purple-600/70 hover:text-purple-700',
+    modalInner: 'bg-purple-50 border-purple-200',
+    accentText: 'text-purple-700',
   },
   jungle: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 transition-all duration-300',
     text: 'text-emerald-950',
     textHeading: 'text-emerald-950',
     textMuted: 'text-emerald-800/70',
@@ -629,6 +641,12 @@ const themeClasses = {
     border: 'border-emerald-100',
     activeSubTab: 'border-emerald-600 text-emerald-700',
     inactiveSubTab: 'border-transparent text-emerald-700/60 hover:text-emerald-800',
+    input: 'border-emerald-200 bg-white text-emerald-950 placeholder:text-emerald-400 focus:border-emerald-500',
+    deepScrapeBtn: 'bg-white border border-emerald-200 hover:border-emerald-400 text-emerald-900',
+    themePicker: 'bg-white/70 border-emerald-200/60',
+    themePickerInactive: 'text-emerald-700/70 hover:text-emerald-800',
+    modalInner: 'bg-emerald-50 border-emerald-200',
+    accentText: 'text-emerald-700',
   }
 };
 
@@ -669,22 +687,22 @@ export default function AdminDashboard() {
           
           <div className="flex flex-wrap items-center gap-3">
             {/* Theme Selector */}
-            <div className="inline-flex rounded-xl bg-slate-900/60 border border-slate-800/40 p-0.5 shadow-sm">
+            <div className={`inline-flex rounded-xl border p-0.5 shadow-sm ${activeTheme.themePicker}`}>
               <button
                 onClick={() => changeTheme('cosmo')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'cosmo' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'cosmo' ? 'bg-violet-600 text-white' : activeTheme.themePickerInactive}`}
               >
                 🌌 Cosmo
               </button>
               <button
                 onClick={() => changeTheme('bubblegum')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'bubblegum' ? 'bg-pink-500 text-white' : 'text-slate-400 hover:text-slate-600'}`}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'bubblegum' ? 'bg-pink-500 text-white' : activeTheme.themePickerInactive}`}
               >
                 🍬 Playful
               </button>
               <button
                 onClick={() => changeTheme('jungle')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'jungle' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-emerald-800'}`}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'jungle' ? 'bg-emerald-600 text-white' : activeTheme.themePickerInactive}`}
               >
                 🌴 Jungle
               </button>
@@ -735,10 +753,10 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex-1">
+      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 pb-12">
         {activeTab === 'sources' && <SourcesManager activeTheme={activeTheme} />}
-        {activeTab === 'upload' && <FlyerUpload onSuccess={() => {}} />}
-        {activeTab === 'auditor' && <GeocodeAuditor />}
+        {activeTab === 'upload' && <FlyerUpload onSuccess={() => {}} activeTheme={activeTheme} />}
+        {activeTab === 'auditor' && <GeocodeAuditor activeTheme={activeTheme} />}
       </main>
     </div>
   );
