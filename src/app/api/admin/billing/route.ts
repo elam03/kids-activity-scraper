@@ -12,28 +12,46 @@ export async function GET() {
       );
     }
 
-    // Call Apify get user info endpoint
-    const res = await fetch(`https://api.apify.com/v2/users/me?token=${apiKey}`);
-    if (!res.ok) {
+    // 1. Fetch User Profile & Plan Info
+    const resMe = await fetch(`https://api.apify.com/v2/users/me?token=${apiKey}`);
+    if (!resMe.ok) {
       return NextResponse.json(
-        { error: 'Failed to fetch user data from Apify' },
-        { status: res.status }
+        { error: 'Failed to fetch user profile from Apify' },
+        { status: resMe.status }
       );
     }
+    const payloadMe = await resMe.json();
+    const dataMe = payloadMe.data || {};
 
-    const payload = await res.json();
-    const data = payload.data || {};
+    // 2. Fetch Actual Real-Time Monthly Billing Usage
+    const resUsage = await fetch(`https://api.apify.com/v2/users/me/usage/monthly?token=${apiKey}`);
+    let usageThisMonth = 0;
+    let usageToday = 0;
+
+    if (resUsage.ok) {
+      const payloadUsage = await resUsage.json();
+      const usageData = payloadUsage.data || {};
+      usageThisMonth = usageData.totalUsageCreditsUsdAfterVolumeDiscount || 0;
+      
+      // Calculate today's usage from the daily breakdown if present
+      const dailyBreakdown = usageData.dailyServiceUsages || [];
+      if (dailyBreakdown.length > 0) {
+        // Today's breakdown is usually the last item in the daily breakdown list
+        const todayBreakdown = dailyBreakdown[dailyBreakdown.length - 1];
+        usageToday = todayBreakdown?.totalUsageCreditsUsd || 0;
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      username: data.username,
-      email: data.email,
-      plan: data.plan || { name: 'Free' },
-      currentBillingPeriod: data.currentBillingPeriod || null,
+      username: dataMe.username,
+      email: dataMe.email,
+      plan: dataMe.plan || { name: 'Free', monthlyPrepaidUsageUsd: 5.0 },
+      currentBillingPeriod: dataMe.currentBillingPeriod || null,
       stats: {
-        usageToday: data.stats?.usageToday || 0,
-        usageThisMonth: data.stats?.usageThisMonth || 0,
-        limits: data.limits || {}
+        usageToday,
+        usageThisMonth,
+        limits: dataMe.limits || {}
       }
     });
   } catch (error) {
