@@ -1,4 +1,5 @@
 import { prisma } from './prisma';
+import { geocodeLocation } from './geocoder';
 
 export interface ExtractedEvent {
   title: string;
@@ -161,6 +162,9 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
       // Default to "approved" if confidence is high AND it's in the South Bay, otherwise route to "pending" review queue
       let status = parsed.confidence >= 0.8 && isSouthBay ? "approved" : "pending";
 
+      // 3. Server-side Geocode Coordinates Resolution
+      const coords = rawEvent.location ? await geocodeLocation(rawEvent.location) : null;
+
       await prisma.event.upsert({
         where: {
           rawPostUrl_title: {
@@ -181,6 +185,8 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
           registrationUrl: rawEvent.registrationUrl || null,
           status,
           confidence: parsed.confidence,
+          latitude: coords?.lat ?? null,
+          longitude: coords?.lng ?? null,
         },
         create: {
           source: { connect: { id: sourceId } },
@@ -199,6 +205,8 @@ If no events are present in the post, return { "isEvent": false, "confidence": 1
           registrationUrl: rawEvent.registrationUrl || null,
           status,
           confidence: parsed.confidence,
+          latitude: coords?.lat ?? null,
+          longitude: coords?.lng ?? null,
         }
       });
     }

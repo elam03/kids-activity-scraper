@@ -51,6 +51,8 @@ export async function POST(request: Request) {
     if (updateFields.isFree !== undefined) data.isFree = updateFields.isFree;
     if (updateFields.ageRange !== undefined) data.ageRange = updateFields.ageRange;
     if (updateFields.registrationUrl !== undefined) data.registrationUrl = updateFields.registrationUrl;
+    if (updateFields.latitude !== undefined) data.latitude = updateFields.latitude === null ? null : Number(updateFields.latitude);
+    if (updateFields.longitude !== undefined) data.longitude = updateFields.longitude === null ? null : Number(updateFields.longitude);
 
     const event = await prisma.event.update({
       where: { id },

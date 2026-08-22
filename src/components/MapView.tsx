@@ -23,6 +23,8 @@ interface Event {
   isFree: boolean;
   registrationUrl: string | null;
   description: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface MapViewProps {
@@ -72,16 +74,21 @@ export default function MapView({ events, onSelectEvent }: MapViewProps) {
     }
   }, []);
 
-  // 2. Geocode all events asynchronously
+  // 2. Geocode all events asynchronously or read database coordinates
   useEffect(() => {
     async function loadPins() {
       const pinsList: PinItem[] = [];
       for (const event of events) {
-        if (event.location) {
-          const coords = await geocodeLocation(event.location);
-          if (coords) {
-            pinsList.push({ event, coords });
-          }
+        let coords: Coordinates | null = null;
+        
+        if (event.latitude !== undefined && event.latitude !== null && event.longitude !== undefined && event.longitude !== null) {
+          coords = { lat: event.latitude, lng: event.longitude };
+        } else if (event.location) {
+          coords = await geocodeLocation(event.location);
+        }
+
+        if (coords) {
+          pinsList.push({ event, coords });
         }
       }
       setPins(pinsList);
