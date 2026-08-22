@@ -216,6 +216,7 @@ export default function CalendarHome() {
     cosmo: {
       bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 flex flex-col justify-between transition-all duration-300',
       text: 'text-slate-100',
+      textHeading: 'text-slate-100',
       textMuted: 'text-slate-400',
       card: 'bg-slate-900/10 border-slate-900 hover:border-slate-800',
       cardAlt: 'bg-slate-950/80 border-slate-800 hover:border-slate-700',
@@ -227,11 +228,17 @@ export default function CalendarHome() {
       activeTab: 'bg-violet-600 text-white',
       inactiveTab: 'text-slate-400 hover:text-slate-200',
       border: 'border-slate-900',
+      modal: 'bg-slate-900 border-slate-800 text-slate-100',
+      modalInner: 'bg-slate-950/40 border-slate-900 text-slate-300',
+      modalTitle: 'text-slate-100',
+      closeBtn: 'text-slate-400 hover:text-slate-200 hover:bg-slate-800',
+      accentText: 'text-slate-200',
     },
     bubblegum: {
       bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 flex flex-col justify-between transition-all duration-300',
       text: 'text-slate-800',
-      textMuted: 'text-slate-500',
+      textHeading: 'text-purple-950',
+      textMuted: 'text-purple-900/70',
       card: 'bg-white/80 border-purple-200/60 shadow-purple-500/5 hover:border-purple-300/80 hover:bg-white',
       cardAlt: 'bg-white border-purple-200 hover:border-purple-300',
       cardBorder: 'border-purple-100',
@@ -242,10 +249,16 @@ export default function CalendarHome() {
       activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
       inactiveTab: 'text-purple-600/70 hover:text-purple-700',
       border: 'border-purple-100',
+      modal: 'bg-white border-purple-200 text-slate-800 shadow-2xl shadow-purple-500/10',
+      modalInner: 'bg-purple-50/55 border-purple-100 text-slate-700',
+      modalTitle: 'text-purple-950 font-bold',
+      closeBtn: 'text-purple-400 hover:text-purple-600 hover:bg-purple-50',
+      accentText: 'text-purple-900 font-semibold',
     },
     jungle: {
       bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
       text: 'text-emerald-950',
+      textHeading: 'text-emerald-950',
       textMuted: 'text-emerald-800/70',
       card: 'bg-white/90 border-emerald-200/60 shadow-emerald-500/5 hover:border-emerald-300/80 hover:bg-white',
       cardAlt: 'bg-white border-emerald-200 hover:border-emerald-300',
@@ -257,6 +270,11 @@ export default function CalendarHome() {
       activeTab: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20',
       inactiveTab: 'text-emerald-700/70 hover:text-emerald-800',
       border: 'border-emerald-100',
+      modal: 'bg-white border-emerald-200 text-emerald-950 shadow-2xl shadow-emerald-500/10',
+      modalInner: 'bg-emerald-50/55 border-emerald-100 text-emerald-900',
+      modalTitle: 'text-emerald-950 font-bold',
+      closeBtn: 'text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50',
+      accentText: 'text-emerald-900 font-semibold',
     }
   };
 
@@ -689,10 +707,10 @@ export default function CalendarHome() {
       {/* Modal Dialog for Event Details */}
       {selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative animate-in fade-in zoom-in duration-200">
+          <div className={`w-full max-w-xl rounded-2xl border p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal}`}>
             <button
               onClick={() => setSelectedEvent(null)}
-              className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
+              className={`absolute top-4 right-4 p-2 rounded-lg transition ${activeTheme.closeBtn}`}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -704,31 +722,31 @@ export default function CalendarHome() {
                 <span className={`inline-block border px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${categoryColors[selectedEvent.category] || categoryColors.other}`}>
                   {selectedEvent.category}
                 </span>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-500 font-medium">
                   via @{selectedEvent.source.handle}
                 </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-100">{selectedEvent.title}</h3>
+              <h3 className={`text-xl ${activeTheme.modalTitle}`}>{selectedEvent.title}</h3>
             </div>
 
-            <div className="mt-6 space-y-4 text-xs text-slate-300">
-              <div className="grid grid-cols-2 gap-4 bg-slate-950/40 p-4 rounded-xl border border-slate-900">
+            <div className="mt-6 space-y-4 text-xs">
+              <div className={`grid grid-cols-2 gap-4 p-4 rounded-xl border ${activeTheme.modalInner}`}>
                 <div>
                   <div className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">When</div>
-                  <div className="font-semibold text-slate-200">
+                  <div className={`font-semibold ${activeTheme.accentText}`}>
                     {selectedEvent.startDate}
                     {selectedEvent.endDate && ` to ${selectedEvent.endDate}`}
                   </div>
-                  <div className="text-slate-400 mt-0.5">
+                  <div className="text-slate-500 mt-0.5 font-medium">
                     {selectedEvent.startTime ? `${selectedEvent.startTime} - ${selectedEvent.endTime || 'End'}` : 'All day'}
                   </div>
                 </div>
                 <div>
                   <div className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Pricing & Age</div>
-                  <div className="font-semibold text-slate-200">
+                  <div className={`font-semibold ${activeTheme.accentText}`}>
                     {selectedEvent.cost || 'Free'}
                   </div>
-                  <div className="text-slate-400 mt-0.5">
+                  <div className="text-slate-500 mt-0.5 font-medium">
                     Age: {selectedEvent.ageRange || 'All ages'}
                   </div>
                 </div>
@@ -737,8 +755,8 @@ export default function CalendarHome() {
               {selectedEvent.location && (
                 <div>
                   <h4 className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Where</h4>
-                  <div className="flex gap-2 items-center text-slate-200 font-semibold">
-                    <svg className="h-4 w-4 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className={`flex gap-2 items-center font-semibold ${activeTheme.accentText}`}>
+                    <svg className="h-4 w-4 text-violet-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -747,20 +765,20 @@ export default function CalendarHome() {
                 </div>
               )}
 
-              <div className="border-t border-slate-900 pt-4">
+              <div className="border-t border-slate-200/10 pt-4">
                 <h4 className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Details</h4>
-                <p className="text-slate-300 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap pr-1 custom-scrollbar">
+                <p className={`leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap pr-1 custom-scrollbar ${activeTheme.cardText}`}>
                   {selectedEvent.description}
                 </p>
               </div>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-slate-900 flex justify-between items-center gap-4">
+            <div className="mt-8 pt-4 border-t border-slate-200/10 flex justify-between items-center gap-4">
               <a
                 href={selectedEvent.rawPostUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-slate-400 hover:text-slate-200 underline"
+                className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 underline"
               >
                 View Original Instagram Post
               </a>
@@ -782,10 +800,10 @@ export default function CalendarHome() {
       {/* Dense Day Detailed List Modal */}
       {selectedDateForDetails && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col">
+          <div className={`w-full max-w-lg rounded-2xl border p-6 relative animate-in fade-in zoom-in duration-200 max-h-[80vh] flex flex-col ${activeTheme.modal}`}>
             <button
               onClick={() => setSelectedDateForDetails(null)}
-              className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
+              className={`absolute top-4 right-4 p-2 rounded-lg transition ${activeTheme.closeBtn}`}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -793,7 +811,7 @@ export default function CalendarHome() {
             </button>
 
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-slate-100">
+              <h3 className={`text-lg ${activeTheme.modalTitle}`}>
                 Activities for {selectedDateForDetails.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">Select an event below to view its full details.</p>
@@ -807,20 +825,20 @@ export default function CalendarHome() {
                     setSelectedDateForDetails(null);
                     setSelectedEvent(ev);
                   }}
-                  className="p-4 rounded-xl border border-slate-800 bg-slate-950/80 cursor-pointer hover:border-slate-700 transition"
+                  className={`p-4 rounded-xl border cursor-pointer transition ${activeTheme.cardAlt}`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <span className={`inline-block border px-1.5 py-0.5 rounded text-[8px] font-semibold uppercase tracking-wider ${categoryColors[ev.category] || categoryColors.other}`}>
                       {ev.category}
                     </span>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-500 font-medium">
                       {ev.startTime || 'All day'}
                     </span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-200 leading-snug">
+                  <h4 className={`text-xs font-bold leading-snug ${activeTheme.textHeading}`}>
                     {ev.title}
                   </h4>
-                  <div className="mt-2 text-[10px] text-slate-400 truncate">
+                  <div className="mt-2 text-[10px] text-slate-500 truncate">
                     📍 {ev.location || 'Location TBD'}
                   </div>
                 </div>

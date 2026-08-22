@@ -31,7 +31,7 @@ interface IngestReport {
 import FlyerUpload from '@/components/FlyerUpload';
 import GeocodeAuditor from '@/components/GeocodeAuditor';
 
-function SourcesManager() {
+function SourcesManager({ activeTheme }: { activeTheme: any }) {
   const [sources, setSources] = useState<Source[]>([]);
   const [newHandle, setNewHandle] = useState('');
   const [loading, setLoading] = useState(false);
@@ -211,20 +211,20 @@ function SourcesManager() {
         
         {/* Left Side: Sources Configuration */}
         <div className="lg:col-span-2 space-y-8">
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-6 shadow-md">
-            <h2 className="text-lg font-semibold mb-4 text-slate-200">Scraping Sources</h2>
+          <div className={`rounded-2xl border p-6 shadow-md ${activeTheme.card}`}>
+            <h2 className={`text-lg font-semibold mb-4 ${activeTheme.textHeading}`}>Scraping Sources</h2>
             
             {sources.length === 0 ? (
-              <div className="text-center py-10 border border-dashed border-slate-800 rounded-xl text-slate-500 text-sm">
+              <div className={`text-center py-10 border border-dashed ${activeTheme.border} rounded-xl text-slate-500 text-sm`}>
                 No Instagram sources configured. Add one below to start.
               </div>
             ) : (
-              <div className="overflow-hidden border border-slate-900 rounded-xl divide-y divide-slate-900 bg-slate-950/40">
+              <div className={`overflow-hidden border rounded-xl divide-y divide-slate-200/10 ${activeTheme.cardAlt}`}>
                 {sources.map((src) => (
                   <div key={src.id} className="p-4 flex items-center justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <div className="font-semibold text-slate-200">{src.name}</div>
+                        <div className={`font-semibold ${activeTheme.textHeading}`}>{src.name}</div>
                         {/* Scrape Status Badge */}
                         {(() => {
                           const lastScraped = src.lastScrapedAt ? new Date(src.lastScrapedAt) : null;
@@ -384,18 +384,18 @@ function SourcesManager() {
           </div>
 
           {/* Add Source Card */}
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-6 shadow-md">
-            <h3 className="text-lg font-semibold mb-4 text-slate-200">Add New Instagram Account</h3>
+          <div className={`rounded-2xl border p-6 shadow-md ${activeTheme.card}`}>
+            <h3 className={`text-lg font-semibold mb-4 ${activeTheme.textHeading}`}>Add New Instagram Account</h3>
             <form onSubmit={handleAddSource} className="flex flex-col sm:flex-row gap-4 items-end">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-slate-400 mb-1">Instagram Handle</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Instagram Handle</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. bayarea_toddlerexplorer"
                   value={newHandle}
                   onChange={(e) => setNewHandle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm text-slate-100 outline-none transition focus:border-violet-500"
+                  className="w-full rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm outline-none transition focus:border-violet-500"
                 />
               </div>
               <div>
@@ -413,9 +413,9 @@ function SourcesManager() {
 
         {/* Right Side: Ingestion Orchestrator */}
         <div className="space-y-8">
-          <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-6 shadow-md flex flex-col h-full">
-            <h2 className="text-lg font-semibold mb-2 text-slate-200">Ingestion Runner</h2>
-            <p className="text-xs text-slate-400 mb-6">
+          <div className={`rounded-2xl border p-6 shadow-md flex flex-col h-full ${activeTheme.card}`}>
+            <h2 className={`text-lg font-semibold mb-2 ${activeTheme.textHeading}`}>Ingestion Runner</h2>
+            <p className={`text-xs ${activeTheme.textMuted} mb-6`}>
               Manually trigger the Apify scraper and GPT-4o vision extraction pipeline across all active sources.
             </p>
 
@@ -430,8 +430,8 @@ function SourcesManager() {
             {/* Live Progress Logs */}
             {statusLog && (
               <div className="mt-6 flex-1 flex flex-col">
-                <h4 className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Pipeline Output</h4>
-                <pre className="flex-1 w-full p-4 rounded-xl bg-slate-950 border border-slate-900 font-mono text-[10px] leading-relaxed text-slate-300 overflow-auto whitespace-pre-wrap max-h-60">
+                <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Pipeline Output</h4>
+                <pre className={`flex-1 w-full p-4 rounded-xl font-mono text-[10px] leading-relaxed overflow-auto whitespace-pre-wrap max-h-60 ${activeTheme.cardAlt}`}>
                   {statusLog}
                 </pre>
               </div>
@@ -439,18 +439,18 @@ function SourcesManager() {
 
             {/* Ingestion Report Table */}
             {report && (
-              <div className="mt-6 border-t border-slate-900 pt-6">
-                <h4 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Scrape Summary</h4>
+              <div className={`mt-6 border-t ${activeTheme.border} pt-6`}>
+                <h4 className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wider">Scrape Summary</h4>
                 <div className="space-y-3">
                   {report.map((rep, idx) => (
-                    <div key={idx} className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-900 text-xs">
+                    <div key={idx} className={`flex justify-between items-center p-3 rounded-xl border text-xs ${activeTheme.cardAlt}`}>
                       <div>
                         <div className="font-semibold text-violet-400">@{rep.source}</div>
                         {rep.error && <div className="text-[10px] text-red-400 mt-1">{rep.error}</div>}
                       </div>
-                      <div className="text-right flex gap-3 text-[10px] text-slate-400">
-                        <div>Scraped: <span className="font-bold text-slate-200">{rep.scrapedCount}</span></div>
-                        <div>Parsed: <span className="font-bold text-emerald-400">{rep.processedCount}</span></div>
+                      <div className="text-right flex gap-3 text-[10px] text-slate-500">
+                        <div>Scraped: <span className={`font-bold ${activeTheme.textHeading}`}>{rep.scrapedCount}</span></div>
+                        <div>Parsed: <span className="font-bold text-emerald-500">{rep.processedCount}</span></div>
                         <div>Dupes: <span className="font-bold text-slate-500">{rep.skippedCount}</span></div>
                       </div>
                     </div>
@@ -462,21 +462,21 @@ function SourcesManager() {
 
           {/* Apify Billing & Quota Widget */}
           {apifyBilling && (
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-6 shadow-md">
+            <div className={`rounded-2xl border p-6 shadow-md ${activeTheme.card}`}>
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <h3 className="text-sm font-semibold text-slate-200">Apify API Usage & Quota</h3>
+                <h3 className={`text-sm font-semibold ${activeTheme.textHeading}`}>Apify API Usage & Quota</h3>
               </div>
               
               <div className="space-y-4 text-xs">
-                <div className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-900">
-                  <span className="text-slate-400">Account Username:</span>
-                  <span className="font-semibold text-slate-200">@{apifyBilling.username}</span>
+                <div className={`flex justify-between items-center p-3 rounded-xl border ${activeTheme.modalInner}`}>
+                  <span className="text-slate-500 font-medium">Account Username:</span>
+                  <span className={`font-semibold ${activeTheme.accentText}`}>@{apifyBilling.username}</span>
                 </div>
 
-                <div className="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-900">
-                  <span className="text-slate-400">Subscription Plan:</span>
-                  <span className="font-semibold text-violet-400 uppercase tracking-wider">{apifyBilling.plan?.name || 'Free'}</span>
+                <div className={`flex justify-between items-center p-3 rounded-xl border ${activeTheme.modalInner}`}>
+                  <span className="text-slate-500 font-medium">Subscription Plan:</span>
+                  <span className="font-semibold text-violet-500 uppercase tracking-wider">{apifyBilling.plan?.name || 'Free'}</span>
                 </div>
 
                 <div className="space-y-2">
@@ -575,14 +575,86 @@ function SourcesManager() {
   );
 }
 
+const themeClasses = {
+  cosmo: {
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 flex flex-col justify-between transition-all duration-300',
+    text: 'text-slate-100',
+    textHeading: 'text-slate-100',
+    textMuted: 'text-slate-400',
+    card: 'bg-slate-900/10 border-slate-900 hover:border-slate-800',
+    cardAlt: 'bg-slate-950/80 border-slate-800 hover:border-slate-700',
+    cardBorder: 'border-slate-900',
+    cardText: 'text-slate-300',
+    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-violet-200 to-indigo-200',
+    navBtn: 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300',
+    badge: 'bg-slate-800 text-slate-300',
+    activeTab: 'bg-violet-600 text-white',
+    inactiveTab: 'text-slate-400 hover:text-slate-200',
+    border: 'border-slate-900',
+    activeSubTab: 'border-violet-500 text-violet-400',
+    inactiveSubTab: 'border-transparent text-slate-400 hover:text-slate-200',
+  },
+  bubblegum: {
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 flex flex-col justify-between transition-all duration-300',
+    text: 'text-slate-800',
+    textHeading: 'text-purple-950',
+    textMuted: 'text-purple-900/70',
+    card: 'bg-white/80 border-purple-200/60 shadow-purple-500/5 hover:border-purple-300/80 hover:bg-white',
+    cardAlt: 'bg-white border-purple-200 hover:border-purple-300',
+    cardBorder: 'border-purple-100',
+    cardText: 'text-slate-600',
+    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 font-extrabold',
+    navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-slate-700',
+    badge: 'bg-purple-100 text-purple-700',
+    activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
+    inactiveTab: 'text-purple-600/70 hover:text-purple-700',
+    border: 'border-purple-100',
+    activeSubTab: 'border-purple-600 text-purple-700',
+    inactiveSubTab: 'border-transparent text-purple-600/60 hover:text-purple-700',
+  },
+  jungle: {
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
+    text: 'text-emerald-950',
+    textHeading: 'text-emerald-950',
+    textMuted: 'text-emerald-800/70',
+    card: 'bg-white/90 border-emerald-200/60 shadow-emerald-500/5 hover:border-emerald-300/80 hover:bg-white',
+    cardAlt: 'bg-white border-emerald-200 hover:border-emerald-300',
+    cardBorder: 'border-emerald-100',
+    cardText: 'text-emerald-800',
+    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-amber-700 font-extrabold',
+    navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900',
+    badge: 'bg-emerald-100 text-emerald-800',
+    activeTab: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20',
+    inactiveTab: 'text-emerald-700/70 hover:text-emerald-800',
+    border: 'border-emerald-100',
+    activeSubTab: 'border-emerald-600 text-emerald-700',
+    inactiveSubTab: 'border-transparent text-emerald-700/60 hover:text-emerald-800',
+  }
+};
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'sources' | 'upload' | 'auditor'>('sources');
+  const [theme, setTheme] = useState<'cosmo' | 'bubblegum' | 'jungle'>('cosmo');
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('calendar-theme');
+    if (savedTheme && ['cosmo', 'bubblegum', 'jungle'].includes(savedTheme)) {
+      setTheme(savedTheme as any);
+    }
+  }, []);
+
+  const changeTheme = (newTheme: 'cosmo' | 'bubblegum' | 'jungle') => {
+    setTheme(newTheme);
+    localStorage.setItem('calendar-theme', newTheme);
+  };
+
+  const activeTheme = themeClasses[theme] || themeClasses.cosmo;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className={activeTheme.bg}>
       {/* Top Navbar */}
-      <header className="border-b border-slate-900 bg-slate-950/80 sticky top-0 z-10 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <header className={`border-b ${activeTheme.border} bg-slate-950/20 sticky top-0 z-10 backdrop-blur-md`}>
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-md shadow-violet-500/10">
               <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -590,32 +662,56 @@ export default function AdminDashboard() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 to-slate-300">
+            <h1 className={`text-xl font-bold tracking-tight ${activeTheme.textHeading}`}>
               Kids Calendar Admin
             </h1>
           </div>
           
-          <nav className="flex gap-4">
-            <Link href="/admin" className="px-4 py-2 rounded-xl text-sm font-medium bg-slate-900 border border-slate-800 text-slate-200">
-              Dashboard
-            </Link>
-            <Link href="/admin/review" className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 transition">
-              Review Queue
-            </Link>
-            <Link href="/" className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 transition">
-              View Calendar
-            </Link>
-          </nav>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Theme Selector */}
+            <div className="inline-flex rounded-xl bg-slate-900/60 border border-slate-800/40 p-0.5 shadow-sm">
+              <button
+                onClick={() => changeTheme('cosmo')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'cosmo' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+              >
+                🌌 Cosmo
+              </button>
+              <button
+                onClick={() => changeTheme('bubblegum')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'bubblegum' ? 'bg-pink-500 text-white' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                🍬 Playful
+              </button>
+              <button
+                onClick={() => changeTheme('jungle')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'jungle' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-emerald-800'}`}
+              >
+                🌴 Jungle
+              </button>
+            </div>
+
+            <nav className="flex gap-3">
+              <Link href="/admin" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                Dashboard
+              </Link>
+              <Link href="/admin/review" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                Review Queue
+              </Link>
+              <Link href="/" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                View Calendar
+              </Link>
+            </nav>
+          </div>
         </div>
       </header>
 
       {/* Sub-navigation Tabs */}
-      <div className="border-b border-slate-900 bg-slate-950/20">
+      <div className={`border-b ${activeTheme.border} bg-slate-950/10 mb-6`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex gap-6">
           <button
             onClick={() => setActiveTab('sources')}
             className={`py-4 text-sm font-semibold border-b-2 transition ${
-              activeTab === 'sources' ? 'border-violet-500 text-violet-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+              activeTab === 'sources' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
             }`}
           >
             Sources & Ingestion
@@ -623,7 +719,7 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('upload')}
             className={`py-4 text-sm font-semibold border-b-2 transition ${
-              activeTab === 'upload' ? 'border-violet-500 text-violet-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+              activeTab === 'upload' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
             }`}
           >
             Flyer Image Ingestion
@@ -631,7 +727,7 @@ export default function AdminDashboard() {
           <button
             onClick={() => setActiveTab('auditor')}
             className={`py-4 text-sm font-semibold border-b-2 transition ${
-              activeTab === 'auditor' ? 'border-violet-500 text-violet-400' : 'border-transparent text-slate-400 hover:text-slate-200'
+              activeTab === 'auditor' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
             }`}
           >
             Event Geocode Auditor
@@ -639,8 +735,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {activeTab === 'sources' && <SourcesManager />}
+      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex-1">
+        {activeTab === 'sources' && <SourcesManager activeTheme={activeTheme} />}
         {activeTab === 'upload' && <FlyerUpload onSuccess={() => {}} />}
         {activeTab === 'auditor' && <GeocodeAuditor />}
       </main>
