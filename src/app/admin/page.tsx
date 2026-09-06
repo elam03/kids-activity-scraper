@@ -416,7 +416,7 @@ function SourcesManager({ activeTheme }: { activeTheme: any }) {
           <div className={`rounded-2xl border p-6 shadow-md flex flex-col h-full ${activeTheme.card}`}>
             <h2 className={`text-lg font-semibold mb-2 ${activeTheme.textHeading}`}>Ingestion Runner</h2>
             <p className={`text-xs ${activeTheme.textMuted} mb-6`}>
-              Manually trigger the Apify scraper and GPT-4o vision extraction pipeline across all active sources.
+              Manually trigger a scrape across all sources. Auto-scraping runs every 6 hours via Railway Cron — each source is only scraped when its adaptive interval has elapsed.
             </p>
 
             <button
