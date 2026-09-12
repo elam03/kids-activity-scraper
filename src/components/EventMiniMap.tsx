@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { geocodeLocation, Coordinates } from '@/lib/geocoder';
 import { getDirectionsUrl, getEffectiveCoords } from '@/lib/location-utils';
+import { getMapTileLayerConfig } from '@/lib/map-tile-utils';
 
 interface EventMiniMapProps {
   title: string;
@@ -113,9 +114,10 @@ export default function EventMiniMap({
         touchZoom: true,
       });
 
-      // Dark Matter tiles for clean appearance
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
+      // Carto Voyager basemap with authenticated API key (GitHub #2)
+      const tileConfig = getMapTileLayerConfig({ style: 'voyager' });
+      L.tileLayer(tileConfig.url, {
+        ...tileConfig.options,
         maxZoom: 19,
       }).addTo(map);
 

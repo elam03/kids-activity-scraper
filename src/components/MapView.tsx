@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { geocodeLocation, Coordinates } from '@/lib/geocoder';
 import { calculateDistanceMiles, formatDistanceMiles } from '@/lib/location-utils';
+import { getMapTileLayerConfig } from '@/lib/map-tile-utils';
 
 interface Event {
   id: string;
@@ -203,12 +204,9 @@ export default function MapView({ events, onSelectEvent }: MapViewProps) {
         zoom: 11,
       });
 
-      // Load OpenStreetMap tiles styled cleanly with CartoDB Dark Matter tiles (free CDN raster tiles)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-      }).addTo(mapInstanceRef.current);
+      // Carto Voyager basemap with authenticated API key (GitHub #2)
+      const tileConfig = getMapTileLayerConfig({ style: 'voyager' });
+      L.tileLayer(tileConfig.url, tileConfig.options).addTo(mapInstanceRef.current);
 
       // Create layer groups
       markerGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
