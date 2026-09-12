@@ -51,13 +51,27 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, status, ...updateFields } = body;
+    const { id, status, action, clearReports, ...updateFields } = body;
 
     if (!id) {
       return NextResponse.json(
         { error: 'Missing event id parameter' },
         { status: 400 }
       );
+    }
+
+    // Support unflagging / clearing inaccuracy reports
+    if (action === 'clear_reports' || clearReports === true) {
+      await prisma.eventFeedback.deleteMany({
+        where: {
+          eventId: id,
+          type: 'report_inaccurate',
+        },
+      });
+
+      if (status === undefined && Object.keys(updateFields).length === 0) {
+        return NextResponse.json({ success: true, clearedReports: true, id });
+      }
     }
 
     const data: any = {};

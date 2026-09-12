@@ -174,6 +174,38 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
     }
   };
 
+  // Clear inaccuracy reports (unflag event)
+  const handleClearReports = async (eventId: string, title?: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to unflag and clear inaccuracy reports for "${title || 'this event'}"?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: eventId, action: 'clear_reports' }),
+      });
+
+      if (res.ok) {
+        showNotification('success', `Inaccuracy reports cleared for "${title || 'event'}".`);
+        setEvents(prev =>
+          prev.map(e => (e.id === eventId ? { ...e, _count: { ...e._count, feedbacks: 0 } } : e))
+        );
+        if (editingEvent?.id === eventId) {
+          setEditingEvent(prev => (prev ? { ...prev, _count: { ...prev._count, feedbacks: 0 } } : null));
+        }
+        onRefreshNeeded?.();
+      } else {
+        const err = await res.json();
+        showNotification('error', err.error || 'Failed to clear reports.');
+      }
+    } catch (err) {
+      showNotification('error', (err as Error).message);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Toast Notification */}
@@ -481,12 +513,21 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {((ev._count?.feedbacks || 0) > 0) && (
-                            <span
-                              title={`${ev._count?.feedbacks} user report(s) of inaccuracy`}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40"
-                            >
-                              🚨 {ev._count?.feedbacks} reported
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span
+                                title={`${ev._count?.feedbacks} user report(s) of inaccuracy`}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40"
+                              >
+                                🚨 {ev._count?.feedbacks} reported
+                              </span>
+                              <button
+                                onClick={() => handleClearReports(ev.id, ev.title)}
+                                title="Unflag: Clear user inaccuracy reports"
+                                className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:border-slate-600 transition active:scale-95"
+                              >
+                                Unflag
+                              </button>
+                            </div>
                           )}
                           {((ev.likes || 0) > 0) && (
                             <span
@@ -590,9 +631,18 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                   </span>
                 )}
                 {(editingEvent._count?.feedbacks || 0) > 0 && (
-                  <span className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-lg border border-red-500/20">
-                    🚨 {editingEvent._count?.feedbacks} user report{editingEvent._count?.feedbacks === 1 ? '' : 's'} of inaccuracy
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-red-500 bg-red-500/10 px-2 py-1 rounded-lg border border-red-500/20">
+                      🚨 {editingEvent._count?.feedbacks} user report{editingEvent._count?.feedbacks === 1 ? '' : 's'} of inaccuracy
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleClearReports(editingEvent.id, editingEvent.title)}
+                      className="px-2 py-1 rounded-lg text-[10px] font-bold bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 transition active:scale-95"
+                    >
+                      Clear Reports
+                    </button>
+                  </div>
                 )}
               </div>
             )}

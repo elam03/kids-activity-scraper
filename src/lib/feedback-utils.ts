@@ -56,3 +56,9 @@ export function toggleLikedEventId(currentLikedIds: string[], eventId: string): 
   }
   return [...currentLikedIds, eventId];
 }
+
+export function hasInaccurateReports(event?: { _count?: { feedbacks?: number } } | null): boolean {
+  if (!event || !event._count) return false;
+  return (event._count.feedbacks || 0) > 0;
+}
+

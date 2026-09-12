@@ -4,6 +4,7 @@ import {
   validateFeedbackPayload,
   getReportReasonLabel,
   toggleLikedEventId,
+  hasInaccurateReports,
   REPORT_REASONS,
 } from './feedback-utils';
 
@@ -59,3 +60,11 @@ test('toggleLikedEventId adds and removes IDs immutably', () => {
   const removed = toggleLikedEventId(added, 'ev-1');
   assert.deepEqual(removed, ['ev-2', 'ev-3']);
 });
+
+test('hasInaccurateReports detects when event has 1 or more reports', () => {
+  assert.equal(hasInaccurateReports({ _count: { feedbacks: 2 } }), true);
+  assert.equal(hasInaccurateReports({ _count: { feedbacks: 0 } }), false);
+  assert.equal(hasInaccurateReports({}), false);
+  assert.equal(hasInaccurateReports(null as any), false);
+});
+
