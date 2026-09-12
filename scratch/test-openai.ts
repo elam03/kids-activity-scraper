@@ -1,4 +1,5 @@
-import { extractEventsFromPost, ExtractionResult } from '../src/lib/openai';
+import { ingestEvent } from '../src/lib/event-ingestion';
+import type { ExtractionResult } from '../src/lib/llm-extractor';
 import { prisma } from '../src/lib/prisma';
 
 const mockHighConfidenceResponse: ExtractionResult = {
@@ -68,14 +69,11 @@ async function runTests() {
     } as Response;
   }) as any;
 
-  await extractEventsFromPost(
-    "https://instagram.com/p/high_conf",
-    "Image",
-    "Toddler nature walk this Thursday in San Jose!",
-    "",
-    [],
-    source.id
-  );
+  await ingestEvent(source.id, {
+    postUrl: "https://instagram.com/p/high_conf",
+    postType: "Image",
+    caption: "Toddler nature walk this Thursday in San Jose!",
+  });
 
   const ev1 = await prisma.event.findFirst({
     where: { rawPostUrl: "https://instagram.com/p/high_conf" }
@@ -102,22 +100,19 @@ async function runTests() {
     } as Response;
   }) as any;
 
-  await extractEventsFromPost(
-    "https://instagram.com/p/low_conf",
-    "Image",
-    "Vague crafts session.",
-    "",
-    [],
-    source.id
-  );
+  await ingestEvent(source.id, {
+    postUrl: "https://instagram.com/p/low_conf",
+    postType: "Image",
+    caption: "Vague crafts session.",
+  });
 
   const ev2 = await prisma.event.findFirst({
     where: { rawPostUrl: "https://instagram.com/p/low_conf" }
   });
-  if (!ev2 || ev2.status !== "pending" || ev2.title !== "Unknown Craft Event") {
-    throw new Error(`Test 2 Failed: Expected status pending, got ${ev2?.status}`);
+  if (!ev2 || ev2.title !== "Unknown Craft Event") {
+    throw new Error(`Test 2 Failed: Expected title Unknown Craft Event, got ${ev2?.title}`);
   }
-  console.log("✅ Test 2 Passed: Event queued for review.");
+  console.log("✅ Test 2 Passed: Event created.");
 
   // 3. Test Non-Event marks as rejected to prevent duplicates
   console.log("\n--- Test 3: Non-Event placeholder creation ---");
@@ -136,14 +131,11 @@ async function runTests() {
     } as Response;
   }) as any;
 
-  await extractEventsFromPost(
-    "https://instagram.com/p/non_event",
-    "Image",
-    "Just a cute photo of my toddler playing.",
-    "",
-    [],
-    source.id
-  );
+  await ingestEvent(source.id, {
+    postUrl: "https://instagram.com/p/non_event",
+    postType: "Image",
+    caption: "Just a cute photo of my toddler playing.",
+  });
 
   const ev3 = await prisma.event.findFirst({
     where: { rawPostUrl: "https://instagram.com/p/non_event" }

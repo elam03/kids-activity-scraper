@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { extractEventsFromPost } from '@/lib/openai';
+import { ingestEvent } from '@/lib/event-ingestion';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,21 +29,18 @@ export async function POST(request: Request) {
     const uploadId = `upload_${Date.now()}`;
     const rawPostUrl = `https://manual-upload/${uploadId}`;
 
-    // 3. Trigger OpenAI Vision Extraction directly
-    // Passing the imageBase64 as the displayUrl and wrapping it inside a mockup Slide structure
-    const extractionResult = await extractEventsFromPost(
-      rawPostUrl,
-      'Sidecar',
-      'Manually uploaded flyer image.',
-      imageBase64,
-      [{ displayUrl: imageBase64 }],
-      manualSource.id
-    );
+    // 3. Trigger event ingestion directly with the flyer image
+    const result = await ingestEvent(manualSource.id, {
+      postUrl: rawPostUrl,
+      images: [imageBase64],
+      caption: 'Manually uploaded flyer image.',
+      isManual: true,
+    });
 
     return NextResponse.json({
       success: true,
-      events: extractionResult.events,
-      confidence: extractionResult.confidence,
+      events: result.events,
+      confidence: result.confidence,
     });
   } catch (error) {
     console.error('Manual image upload parsing failed:', error);

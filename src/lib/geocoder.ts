@@ -3,11 +3,14 @@ export interface Coordinates {
   lng: number;
 }
 
-// Simple in-memory and LocalStorage cache to prevent hitting OSM Nominatim too frequently
+// Simple in-memory (server) and LocalStorage (client) cache to prevent hitting OSM Nominatim too frequently
 const GEOCODE_CACHE_KEY = 'kids-calendar-geocode-cache';
+const serverCache = new Map<string, Coordinates>();
 
 function getCache(): Record<string, Coordinates> {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined') {
+    return Object.fromEntries(serverCache.entries());
+  }
   try {
     const cached = localStorage.getItem(GEOCODE_CACHE_KEY);
     return cached ? JSON.parse(cached) : {};
@@ -17,7 +20,12 @@ function getCache(): Record<string, Coordinates> {
 }
 
 function setCache(cache: Record<string, Coordinates>) {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') {
+    for (const [key, val] of Object.entries(cache)) {
+      serverCache.set(key, val);
+    }
+    return;
+  }
   try {
     localStorage.setItem(GEOCODE_CACHE_KEY, JSON.stringify(cache));
   } catch (err) {

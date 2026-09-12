@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { scrapeInstagramAccount } from '@/lib/apify';
-import { extractEventsFromPost } from '@/lib/openai';
+import { ingestEvent } from '@/lib/event-ingestion';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,26 +54,19 @@ export async function POST(request: Request) {
         scrapedCount = posts.length;
 
         for (const post of posts) {
-          // Check if post has already been processed (approved, pending, or rejected placeholder)
-          const existingEvent = await prisma.event.findFirst({
-            where: { rawPostUrl: post.url }
+          const result = await ingestEvent(source.id, {
+            postUrl: post.url,
+            caption: post.caption,
+            postType: post.type,
+            displayUrl: post.displayUrl,
+            childPosts: post.childPosts,
           });
 
-          if (existingEvent) {
+          if (result.skipped) {
             skippedCount++;
-            continue;
+          } else {
+            processedCount++;
           }
-
-          // Trigger extraction pipeline (which handles base64 image down-converts, vision parsing, and DB upserts)
-          await extractEventsFromPost(
-            post.url,
-            post.type,
-            post.caption,
-            post.displayUrl,
-            post.childPosts,
-            source.id
-          );
-          processedCount++;
         }
 
         // Update lastScrapedAt timestamp

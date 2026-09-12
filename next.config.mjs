@@ -14,6 +14,15 @@ const nextConfig = {
       }
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/admin/review',
+        destination: '/admin',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

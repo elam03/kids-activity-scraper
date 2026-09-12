@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { scrapeInstagramAccount } from '@/lib/apify';
-import { extractEventsFromPost } from '@/lib/openai';
+import { ingestEvent } from '@/lib/event-ingestion';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,24 +114,19 @@ async function handleCronTrigger(request: Request) {
         scrapedCount = posts.length;
 
         for (const post of posts) {
-          const existingEvent = await prisma.event.findFirst({
-            where: { rawPostUrl: post.url },
+          const result = await ingestEvent(source.id, {
+            postUrl: post.url,
+            caption: post.caption,
+            postType: post.type,
+            displayUrl: post.displayUrl,
+            childPosts: post.childPosts,
           });
 
-          if (existingEvent) {
+          if (result.skipped) {
             skippedCount++;
-            continue;
+          } else {
+            processedCount++;
           }
-
-          await extractEventsFromPost(
-            post.url,
-            post.type,
-            post.caption,
-            post.displayUrl,
-            post.childPosts,
-            source.id
-          );
-          processedCount++;
         }
 
         // Recalculate adaptive interval
