@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:railway": "env $(cat .env.railway.local | grep -v '^#' | xargs) next dev",
     "build": "next build && mkdir -p .next/standalone/.next && cp -rf .next/static .next/standalone/.next/ && (cp -rf public .next/standalone/ || true)",
     "start": "next start",
     "lint": "next lint",
