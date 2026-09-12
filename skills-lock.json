@@ -54,6 +54,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/wayfinder/SKILL.md",
       "computedHash": "8f610a50e8e8044571d918088160a9657e23f1268080728bf92009db48f6c22f"
+    },
+    "deploy-site": {
+      "source": "./local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/deploy-site/SKILL.md",
+      "computedHash": "c3e8e44d8d4aeb4eee744a593c0f5d837dfb890999c42f144249440390e20c0e"
     }
   }
 }

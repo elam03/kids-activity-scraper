@@ -1,0 +1,6 @@
+interface:
+  display_name: "Deploy Site"
+  short_description: "Sync all commits from branch main to deploy branch and push to origin"
+  default_prompt: "Use $deploy-site to deploy the latest commits from main to the deploy branch."
+policy:
+  allow_implicit_invocation: false
