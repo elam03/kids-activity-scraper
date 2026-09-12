@@ -53,3 +53,66 @@ export function isNeedsReview(event: ReviewableEvent): boolean {
   return false;
 }
 
+/**
+ * Checks whether an event's age group matches any of the selected age groups.
+ *
+ * Rules:
+ * 1. When selectedAgeGroups is empty or includes 'all', returns true.
+ * 2. If eventAgeGroup is null/undefined or empty string, it defaults to 'all'.
+ *    - If 'all' is selected, returns true; otherwise false.
+ * 3. Splits eventAgeGroup by comma or slash to support compound classifications (e.g. 'toddlers, preschoolers').
+ * 4. Returns true if ANY classified event age group matches ANY selected age group.
+ */
+export function matchesAgeGroup(
+  eventAgeGroup: string | null | undefined,
+  selectedAgeGroups: string[] | Set<string>
+): boolean {
+  const selected = Array.isArray(selectedAgeGroups)
+    ? selectedAgeGroups
+    : Array.from(selectedAgeGroups);
+
+  if (selected.length === 0 || selected.includes('all')) {
+    return true;
+  }
+
+  if (!eventAgeGroup || eventAgeGroup.trim() === '') {
+    return selected.includes('all');
+  }
+
+  const groups = eventAgeGroup
+    .split(/[,/]/)
+    .map(g => g.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (groups.length === 0) {
+    return selected.includes('all');
+  }
+
+  return groups.some(g => selected.includes(g));
+}
+
+/**
+ * Toggles an age group selection according to multi-selection interaction rules:
+ * - Selecting 'all' resets to ['all'].
+ * - Selecting an age group when 'all' is currently active switches to just that age group.
+ * - Clicking an active age group toggles it off.
+ * - Deselecting all age groups resets to ['all'].
+ * - Clicking an unselected age group adds it to the active selections.
+ */
+export function toggleAgeGroup(currentSelected: string[], groupToToggle: string): string[] {
+  if (groupToToggle === 'all') {
+    return ['all'];
+  }
+
+  if (currentSelected.length === 0 || currentSelected.includes('all')) {
+    return [groupToToggle];
+  }
+
+  if (currentSelected.includes(groupToToggle)) {
+    const remaining = currentSelected.filter(g => g !== groupToToggle);
+    return remaining.length === 0 ? ['all'] : remaining;
+  }
+
+  return [...currentSelected, groupToToggle];
+}
+

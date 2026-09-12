@@ -6,6 +6,7 @@ import dynamicNext from 'next/dynamic';
 export const dynamic = 'force-dynamic';
 
 import EventFeedbackButtons from '@/components/EventFeedbackButtons';
+import { matchesAgeGroup, toggleAgeGroup } from '@/lib/event-utils';
 
 // Dynamically import MapView client-side only to prevent SSR conflicts with Leaflet
 const MapView = dynamicNext(() => import('@/components/MapView'), {
@@ -15,6 +16,15 @@ const MapView = dynamicNext(() => import('@/components/MapView'), {
 const EventMiniMap = dynamicNext(() => import('@/components/EventMiniMap'), {
   ssr: false,
 });
+
+const AGE_GROUPS = [
+  { id: 'all', label: 'All Ages', emoji: '👶' },
+  { id: 'infants', label: 'Infants (0-1)', emoji: '🤱' },
+  { id: 'toddlers', label: 'Toddlers (2-4)', emoji: '🍼' },
+  { id: 'preschoolers', label: 'Preschoolers (5-7)', emoji: '🎨' },
+  { id: 'kids', label: 'Kids (8-12)', emoji: '🎒' },
+  { id: 'teens', label: 'Teens (13+)', emoji: '🛹' },
+] as const;
 
 interface Event {
   id: string;
@@ -31,6 +41,7 @@ interface Event {
   endTime: string | null;
   location: string | null;
   ageRange: string | null;
+  ageGroup?: string;
   category: string;
   cost: string | null;
   isFree: boolean;
@@ -49,8 +60,12 @@ export default function CalendarHome() {
   const [loading, setLoading] = useState(true);
 
   // Filter States
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
+  const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>(['all']);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const handleToggleAgeGroup = (groupId: string) => {
+    setSelectedAgeGroups(prev => toggleAgeGroup(prev, groupId));
+  };
 
   // Theme State
   const [theme, setTheme] = useState<'cosmo' | 'bubblegum' | 'jungle'>('cosmo');
@@ -110,9 +125,7 @@ export default function CalendarHome() {
 
   // Filter events based on selections
   const filteredEvents = events.filter(e => {
-    // Some events might have an undefined or null ageGroup in old scraped records; default to "all"
-    const eventAge = (e as any).ageGroup || 'all';
-    const matchesAge = selectedAgeGroup === 'all' || eventAge === selectedAgeGroup;
+    const matchesAge = matchesAgeGroup(e.ageGroup, selectedAgeGroups);
     const matchesCategory = selectedCategory === 'all' || e.category === selectedCategory;
     return matchesAge && matchesCategory;
   });
@@ -367,27 +380,34 @@ export default function CalendarHome() {
         </header>
 
         {/* Filters Toolbar */}
-        <div className={`flex flex-wrap gap-4 items-center justify-between p-4 mb-6 rounded-2xl border ${activeTheme.card} transition-all duration-300`}>
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Age Filter */}
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Age Range:</label>
-              <select
-                value={selectedAgeGroup}
-                onChange={(e) => setSelectedAgeGroup(e.target.value)}
-                className={`rounded-xl border px-3 py-1.5 text-xs outline-none transition max-w-[160px] cursor-pointer ${activeTheme.input}`}
-              >
-                <option value="all">👶 All Ages / Family</option>
-                <option value="infants">🤱 Infants (0-1 yrs)</option>
-                <option value="toddlers">🍼 Toddlers (2-4 yrs)</option>
-                <option value="preschoolers">🎨 Preschoolers (5-7 yrs)</option>
-                <option value="kids">🎒 Kids (8-12 yrs)</option>
-                <option value="teens">🛹 Teens (13+ yrs)</option>
-              </select>
+        <div className={`flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-4 mb-6 rounded-2xl border ${activeTheme.card} transition-all duration-300`}>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full lg:w-auto">
+            {/* Age Filter Multi-Select Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 shrink-0">Age Range:</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {AGE_GROUPS.map(group => {
+                  const isSelected = selectedAgeGroups.includes(group.id);
+                  return (
+                    <button
+                      key={group.id}
+                      type="button"
+                      onClick={() => handleToggleAgeGroup(group.id)}
+                      className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition border ${
+                        isSelected
+                          ? `${activeTheme.activeTab} border-transparent shadow-sm`
+                          : `${activeTheme.navBtn} opacity-75 hover:opacity-100`
+                      }`}
+                    >
+                      <span>{group.emoji}</span> <span className="ml-1">{group.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Category Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Category:</label>
               <select
                 value={selectedCategory}
@@ -406,7 +426,7 @@ export default function CalendarHome() {
             </div>
           </div>
 
-          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 self-end lg:self-auto">
             Showing {filteredEvents.length} activities
           </div>
         </div>

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isNeedsReview } from './event-utils';
+import { isNeedsReview, matchesAgeGroup, toggleAgeGroup } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
   const rejectedEvent = {
@@ -99,5 +99,65 @@ test('isNeedsReview returns false for rejected events even if they have reports'
     feedbacks: [{ id: 'fb2' }],
   };
   assert.equal(isNeedsReview(rejectedEventWithReports), false);
+});
+
+test('matchesAgeGroup returns true when selected age groups is empty or contains all', () => {
+  assert.equal(matchesAgeGroup('toddlers', []), true);
+  assert.equal(matchesAgeGroup('toddlers', ['all']), true);
+  assert.equal(matchesAgeGroup('all', ['all']), true);
+  assert.equal(matchesAgeGroup(null, ['all']), true);
+  assert.equal(matchesAgeGroup(undefined, []), true);
+  assert.equal(matchesAgeGroup('toddlers', new Set(['all'])), true);
+  assert.equal(matchesAgeGroup('toddlers', new Set([])), true);
+});
+
+test('matchesAgeGroup matches when event ageGroup is in selected age groups', () => {
+  assert.equal(matchesAgeGroup('toddlers', ['toddlers', 'kids']), true);
+  assert.equal(matchesAgeGroup('kids', ['toddlers', 'kids']), true);
+  assert.equal(matchesAgeGroup('infants', ['toddlers', 'kids']), false);
+  assert.equal(matchesAgeGroup('teens', ['toddlers', 'kids']), false);
+  assert.equal(matchesAgeGroup('toddlers', new Set(['toddlers', 'preschoolers'])), true);
+  assert.equal(matchesAgeGroup('teens', new Set(['toddlers', 'preschoolers'])), false);
+});
+
+test('matchesAgeGroup handles comma or slash separated event age groups', () => {
+  assert.equal(matchesAgeGroup('toddlers, preschoolers', ['toddlers']), true);
+  assert.equal(matchesAgeGroup('toddlers / preschoolers', ['preschoolers']), true);
+  assert.equal(matchesAgeGroup('toddlers, preschoolers', ['teens']), false);
+});
+
+test('matchesAgeGroup handles null or undefined event ageGroup with specific filters', () => {
+  assert.equal(matchesAgeGroup(null, ['toddlers']), false);
+  assert.equal(matchesAgeGroup(undefined, ['toddlers', 'kids']), false);
+});
+
+test('toggleAgeGroup switches from all to the clicked age group', () => {
+  const result = toggleAgeGroup(['all'], 'toddlers');
+  assert.deepEqual(result, ['toddlers']);
+});
+
+test('toggleAgeGroup adds an unselected age group to existing selections', () => {
+  const result = toggleAgeGroup(['toddlers'], 'kids');
+  assert.deepEqual(result, ['toddlers', 'kids']);
+});
+
+test('toggleAgeGroup removes an active age group when clicked', () => {
+  const result = toggleAgeGroup(['toddlers', 'kids'], 'toddlers');
+  assert.deepEqual(result, ['kids']);
+});
+
+test('toggleAgeGroup resets to all when last active age group is deselected', () => {
+  const result = toggleAgeGroup(['toddlers'], 'toddlers');
+  assert.deepEqual(result, ['all']);
+});
+
+test('toggleAgeGroup resets to all when all is selected', () => {
+  const result = toggleAgeGroup(['toddlers', 'kids'], 'all');
+  assert.deepEqual(result, ['all']);
+});
+
+test('toggleAgeGroup handles empty initial selections gracefully', () => {
+  assert.deepEqual(toggleAgeGroup([], 'toddlers'), ['toddlers']);
+  assert.deepEqual(toggleAgeGroup([], 'all'), ['all']);
 });
 
