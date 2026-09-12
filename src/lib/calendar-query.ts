@@ -195,3 +195,24 @@ export function useCalendarQuery(events: CalendarEvent[], options: UseCalendarQu
     getEventsForDate,
   };
 }
+
+export interface CalendarModalState<T = unknown> {
+  selectedEvent: T | null;
+  selectedDateForDetails: Date | null;
+}
+
+/**
+ * Handles Escape key navigation for calendar modals.
+ * Prioritizes dismissing the topmost modal (event detail) first,
+ * returning the user to the underlying day detail modal if active.
+ */
+export function handleModalEscapeKey<T = unknown>(state: CalendarModalState<T>): CalendarModalState<T> {
+  if (state.selectedEvent) {
+    return { ...state, selectedEvent: null };
+  }
+  if (state.selectedDateForDetails) {
+    return { ...state, selectedDateForDetails: null };
+  }
+  return state;
+}
+

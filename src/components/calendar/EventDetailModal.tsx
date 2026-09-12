@@ -26,9 +26,15 @@ export default function EventDetailModal({
   onBackToDay,
 }: EventDetailModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
         className={`w-full max-w-xl rounded-2xl border p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal}`}
+        onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}

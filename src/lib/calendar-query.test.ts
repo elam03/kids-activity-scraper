@@ -10,6 +10,7 @@ import {
   isMultiDayActiveInRange,
   getActiveMultiDayEvents,
   calculateNextPivotDate,
+  handleModalEscapeKey,
   type CalendarEvent,
 } from './calendar-query';
 
@@ -161,3 +162,19 @@ test('calculateNextPivotDate steps forward and backward correctly', () => {
   const backwardMonth = calculateNextPivotDate(pivot, 'month', -1);
   assert.equal(backwardMonth.getMonth(), 7, 'Steps backward by 1 month in month view');
 });
+
+test('handleModalEscapeKey dismisses top modal first when both day and event modals are active', () => {
+  const dayDate = new Date(2026, 8, 15);
+  const sampleEvent = { id: '1', title: 'Music' };
+
+  // When both event and day modal are active, dismissing escape closes event first, retaining day modal
+  const next1 = handleModalEscapeKey({ selectedEvent: sampleEvent, selectedDateForDetails: dayDate });
+  assert.equal(next1.selectedEvent, null);
+  assert.equal(next1.selectedDateForDetails, dayDate);
+
+  // When only day modal is active, dismissing escape closes day modal
+  const next2 = handleModalEscapeKey(next1);
+  assert.equal(next2.selectedEvent, null);
+  assert.equal(next2.selectedDateForDetails, null);
+});
+

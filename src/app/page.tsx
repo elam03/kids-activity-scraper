@@ -9,6 +9,7 @@ import { toggleAgeGroup } from '@/lib/event-utils';
 import {
   useCalendarQuery,
   calculateNextPivotDate,
+  handleModalEscapeKey,
   type CalendarEvent,
 } from '@/lib/calendar-query';
 import DayTimelineView from '@/components/calendar/DayTimelineView';
@@ -178,12 +179,9 @@ export default function CalendarHome() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
-      if (selectedEvent) {
-        setSelectedEvent(null);
-        if (!selectedDateForDetails) return;
-      } else if (selectedDateForDetails) {
-        setSelectedDateForDetails(null);
-      }
+      const next = handleModalEscapeKey({ selectedEvent, selectedDateForDetails });
+      setSelectedEvent(next.selectedEvent as CalendarEvent | null);
+      setSelectedDateForDetails(next.selectedDateForDetails);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -454,7 +452,18 @@ export default function CalendarHome() {
         )}
       </div>
 
-      {/* Modal Dialog for Event Details */}
+      {/* Day Detail Modal */}
+      {selectedDateForDetails && (
+        <DayDetailModal
+          date={selectedDateForDetails}
+          events={getEventsForDate(selectedDateForDetails)}
+          activeTheme={activeTheme}
+          onClose={() => setSelectedDateForDetails(null)}
+          onSelectEvent={(ev) => setSelectedEvent(ev)}
+        />
+      )}
+
+      {/* Modal Dialog for Event Details (Elevated on top) */}
       {selectedEvent && (
         <EventDetailModal
           event={selectedEvent}
@@ -466,17 +475,6 @@ export default function CalendarHome() {
             setSelectedDateForDetails(null);
           }}
           onBackToDay={() => setSelectedEvent(null)}
-        />
-      )}
-
-      {/* Day Detail Modal */}
-      {selectedDateForDetails && (
-        <DayDetailModal
-          date={selectedDateForDetails}
-          events={getEventsForDate(selectedDateForDetails)}
-          activeTheme={activeTheme}
-          onClose={() => setSelectedDateForDetails(null)}
-          onSelectEvent={(ev) => setSelectedEvent(ev)}
         />
       )}
     </div>
