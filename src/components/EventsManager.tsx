@@ -631,10 +631,18 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
 
       {/* Full Event Edit Modal */}
       {editingEvent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className={`w-full max-w-2xl rounded-2xl border p-6 my-8 relative animate-in fade-in zoom-in duration-150 shadow-2xl ${activeTheme.modal || 'bg-slate-900 border-slate-800 text-slate-100'}`}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-3 sm:p-6 overflow-hidden"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setEditingEvent(null);
+          }}
+        >
+          <div
+            className={`w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border relative animate-in fade-in zoom-in duration-150 shadow-2xl overflow-hidden ${activeTheme.modal || 'bg-slate-900 border-slate-800 text-slate-100'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
-            <div className={`flex items-start justify-between pb-4 border-b ${activeTheme.border || 'border-slate-800/60'}`}>
+            <div className={`flex items-start justify-between p-5 sm:p-6 pb-4 border-b flex-shrink-0 ${activeTheme.border || 'border-slate-800/60'}`}>
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400">
                   Admin Event Editor
@@ -644,6 +652,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setEditingEvent(null)}
                 className={`p-1.5 rounded-lg transition ${activeTheme.closeBtn || 'text-slate-400 hover:text-slate-200'}`}
               >
@@ -653,9 +662,12 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
               </button>
             </div>
 
-            {/* Quick Verification Banner */}
-            {editingEvent.rawPostUrl && (
-              <div className={`mt-4 p-3 rounded-xl border flex items-center justify-between gap-3 ${activeTheme.modalInner || 'bg-violet-950/30 border-violet-500/30'}`}>
+            {/* Edit Form */}
+            <form onSubmit={handleSaveEdit} className="flex-1 flex flex-col min-h-0 overflow-hidden text-xs">
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+                {/* Quick Verification Banner */}
+                {editingEvent.rawPostUrl && (
+                  <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${activeTheme.modalInner || 'bg-violet-950/30 border-violet-500/30'}`}>
                 <div className="flex items-center gap-2 text-xs font-semibold">
                   <span className="text-sm">📸</span>
                   <span>
@@ -701,10 +713,8 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
               </div>
             )}
 
-            {/* Edit Form */}
-            <form onSubmit={handleSaveEdit} className="mt-5 space-y-4 text-xs">
-              {/* Title */}
-              <div>
+            {/* Title */}
+            <div>
                 <label className={`block text-[11px] font-bold mb-1 ${activeTheme.textMuted || 'text-slate-400'}`}>
                   Event Title
                 </label>
@@ -891,9 +901,10 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                   className={`w-full px-3 py-2 rounded-xl border outline-none font-medium ${activeTheme.input}`}
                 />
               </div>
+            </div>
 
-              {/* Modal Footer Actions */}
-              <div className={`pt-4 border-t flex items-center justify-between gap-3 ${activeTheme.border || 'border-slate-800/60'}`}>
+            {/* Modal Footer Actions */}
+            <div className={`p-4 sm:p-5 border-t flex items-center justify-between gap-3 flex-shrink-0 ${activeTheme.border || 'border-slate-800/60'}`}>
                 <button
                   type="button"
                   onClick={() => handleDeleteEvent(editingEvent)}
