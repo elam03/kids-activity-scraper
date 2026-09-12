@@ -1,0 +1,6 @@
+interface:
+  display_name: "GitHub to Beads"
+  short_description: "Convert GitHub issues into Beads tasks with closeout task"
+  default_prompt: "Use $github-to-beads to read GitHub issues and decompose them into Beads tasks."
+policy:
+  allow_implicit_invocation: false

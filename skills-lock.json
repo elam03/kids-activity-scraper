@@ -36,6 +36,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/wayfinder/SKILL.md",
       "computedHash": "8f610a50e8e8044571d918088160a9657e23f1268080728bf92009db48f6c22f"
+    },
+    "github-to-beads": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/github-to-beads/SKILL.md",
+      "computedHash": "cf6c15855b77942254c304dd10d82b44deab8e6fa03cef4abdb49595b4964eef"
     }
   }
 }
