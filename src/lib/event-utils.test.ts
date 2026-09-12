@@ -65,3 +65,39 @@ test('isNeedsReview returns false for approved events with high confidence and v
   };
   assert.equal(isNeedsReview(validApprovedEvent), false);
 });
+
+test('isNeedsReview returns true for approved events with 1+ report via _count.feedbacks or feedbacks array', () => {
+  const reportedEventWithCount = {
+    id: '7',
+    status: 'approved',
+    confidence: 0.95,
+    location: 'San Jose, CA',
+    startDate: '2026-09-20',
+    _count: { feedbacks: 2 },
+  };
+  assert.equal(isNeedsReview(reportedEventWithCount), true);
+
+  const reportedEventWithArray = {
+    id: '8',
+    status: 'approved',
+    confidence: 0.95,
+    location: 'San Jose, CA',
+    startDate: '2026-09-20',
+    feedbacks: [{ id: 'fb1', reason: 'cancelled' }],
+  };
+  assert.equal(isNeedsReview(reportedEventWithArray), true);
+});
+
+test('isNeedsReview returns false for rejected events even if they have reports', () => {
+  const rejectedEventWithReports = {
+    id: '9',
+    status: 'rejected',
+    confidence: 0.95,
+    location: 'San Jose, CA',
+    startDate: '2026-09-20',
+    _count: { feedbacks: 3 },
+    feedbacks: [{ id: 'fb2' }],
+  };
+  assert.equal(isNeedsReview(rejectedEventWithReports), false);
+});
+

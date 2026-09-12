@@ -3,6 +3,10 @@ export interface ReviewableEvent {
   confidence?: number | null;
   location?: string | null;
   startDate?: string | null;
+  _count?: {
+    feedbacks?: number;
+  };
+  feedbacks?: unknown[];
 }
 
 /**
@@ -10,14 +14,20 @@ export interface ReviewableEvent {
  *
  * Rules:
  * 1. Rejected events NEVER need review (they are already rejected/non-events).
- * 2. Pending events always need review.
- * 3. Events with confidence < 0.8 need review.
- * 4. Events missing location or startDate need review.
- * 5. Otherwise, the event does not need review.
+ * 2. Events with 1 or more user feedback/inaccuracy reports need review.
+ * 3. Pending events always need review.
+ * 4. Events with confidence < 0.8 need review.
+ * 5. Events missing location or startDate need review.
+ * 6. Otherwise, the event does not need review.
  */
 export function isNeedsReview(event: ReviewableEvent): boolean {
   if (event.status === 'rejected') {
     return false;
+  }
+
+  const feedbackCount = event._count?.feedbacks ?? (Array.isArray(event.feedbacks) ? event.feedbacks.length : 0);
+  if (feedbackCount > 0) {
+    return true;
   }
 
   if (event.status === 'pending') {
@@ -42,3 +52,4 @@ export function isNeedsReview(event: ReviewableEvent): boolean {
 
   return false;
 }
+

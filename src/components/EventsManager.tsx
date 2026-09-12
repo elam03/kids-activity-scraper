@@ -368,6 +368,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                   <th className="py-3.5 px-4">Location</th>
                   <th className="py-3.5 px-4">Category</th>
                   <th className="py-3.5 px-4">Status / Confidence</th>
+                  <th className="py-3.5 px-4">Reports / Likes</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
@@ -388,7 +389,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                         <div className="flex items-start gap-2">
                           {needsReview && (
                             <span
-                              title="Needs review: low confidence or incomplete data"
+                              title="Needs review: low confidence, user reports, or incomplete data"
                               className="mt-0.5 text-amber-500 text-xs shrink-0 cursor-help"
                             >
                               ⚠️
@@ -451,35 +452,17 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                       {/* Status / Confidence */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span
-                              className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold w-fit ${
-                                ev.status === 'approved'
-                                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                                  : ev.status === 'rejected'
-                                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
-                                  : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
-                              }`}
-                            >
-                              {ev.status.toUpperCase()}
-                            </span>
-                            {((ev._count?.feedbacks || 0) > 0) && (
-                              <span
-                                title={`${ev._count?.feedbacks} user report(s) of inaccuracy`}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40"
-                              >
-                                🚨 {ev._count?.feedbacks}
-                              </span>
-                            )}
-                            {((ev.likes || 0) > 0) && (
-                              <span
-                                title={`${ev.likes} like(s)`}
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
-                              >
-                                ❤️ {ev.likes}
-                              </span>
-                            )}
-                          </div>
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold w-fit ${
+                              ev.status === 'approved'
+                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                : ev.status === 'rejected'
+                                ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                            }`}
+                          >
+                            {ev.status.toUpperCase()}
+                          </span>
                           <span
                             className={`text-[10px] font-bold ${
                               ev.status === 'rejected'
@@ -491,6 +474,33 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                           >
                             {confidencePct}% conf
                           </span>
+                        </div>
+                      </td>
+
+                      {/* Reports / Feedback */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {((ev._count?.feedbacks || 0) > 0) && (
+                            <span
+                              title={`${ev._count?.feedbacks} user report(s) of inaccuracy`}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/40"
+                            >
+                              🚨 {ev._count?.feedbacks} reported
+                            </span>
+                          )}
+                          {((ev.likes || 0) > 0) && (
+                            <span
+                              title={`${ev.likes} like(s)`}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                            >
+                              ❤️ {ev.likes}
+                            </span>
+                          )}
+                          {!((ev._count?.feedbacks || 0) > 0) && !((ev.likes || 0) > 0) && (
+                            <span className={`text-[11px] font-medium ${activeTheme.tableMuted || 'text-slate-500'}`}>
+                              -
+                            </span>
+                          )}
                         </div>
                       </td>
 
