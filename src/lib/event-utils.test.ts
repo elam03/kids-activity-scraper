@@ -1,6 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isNeedsReview, matchesAgeGroup, toggleAgeGroup } from './event-utils';
+import {
+  isNeedsReview,
+  matchesAgeGroup,
+  toggleAgeGroup,
+  isPastEvent,
+  buildPastEventsPruneWhere,
+} from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
   const rejectedEvent = {
@@ -160,4 +166,40 @@ test('toggleAgeGroup handles empty initial selections gracefully', () => {
   assert.deepEqual(toggleAgeGroup([], 'toddlers'), ['toddlers']);
   assert.deepEqual(toggleAgeGroup([], 'all'), ['all']);
 });
+
+test('isPastEvent correctly classifies past vs active single-day and multi-day events', () => {
+  const today = '2026-09-12';
+
+  // Single-day past event
+  assert.equal(isPastEvent({ startDate: '2026-09-10', endDate: null }, today), true);
+
+  // Single-day today event (not past)
+  assert.equal(isPastEvent({ startDate: '2026-09-12', endDate: null }, today), false);
+
+  // Single-day future event (not past)
+  assert.equal(isPastEvent({ startDate: '2026-09-15', endDate: null }, today), false);
+
+  // Multi-day past event (endDate in past)
+  assert.equal(isPastEvent({ startDate: '2026-09-01', endDate: '2026-09-10' }, today), true);
+
+  // Multi-day active event (startDate in past, but endDate is in the future or today)
+  assert.equal(isPastEvent({ startDate: '2026-09-01', endDate: '2026-09-15' }, today), false);
+  assert.equal(isPastEvent({ startDate: '2026-09-10', endDate: '2026-09-12' }, today), false);
+});
+
+test('buildPastEventsPruneWhere constructs valid Prisma query filter for past events', () => {
+  const where = buildPastEventsPruneWhere('2026-09-12');
+  assert.deepEqual(where, {
+    OR: [
+      {
+        endDate: { not: null, lt: '2026-09-12' },
+      },
+      {
+        endDate: null,
+        startDate: { lt: '2026-09-12' },
+      },
+    ],
+  });
+});
+
 

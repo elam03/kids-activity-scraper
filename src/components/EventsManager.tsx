@@ -50,6 +50,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
   const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPruning, setIsPruning] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchEvents = async () => {
@@ -206,6 +207,35 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
     }
   };
 
+  const handlePrunePastEvents = async () => {
+    if (!confirm('Are you sure you want to prune past events? Events that ended prior to today will be permanently removed to optimize storage.')) {
+      return;
+    }
+
+    setIsPruning(true);
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'prune_past_events' }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        showNotification('success', `Successfully pruned ${data.prunedCount ?? 0} past events.`);
+        await fetchEvents();
+        onRefreshNeeded?.();
+      } else {
+        const err = await res.json();
+        showNotification('error', err.error || 'Failed to prune past events.');
+      }
+    } catch (err) {
+      showNotification('error', (err as Error).message);
+    } finally {
+      setIsPruning(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Toast Notification */}
@@ -236,8 +266,16 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
 
           <div className="flex items-center gap-2">
             <button
+              onClick={handlePrunePastEvents}
+              disabled={loading || isPruning}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition disabled:opacity-50 ${activeTheme.cardAlt || 'bg-slate-900'} hover:border-rose-500/50 hover:text-rose-400`}
+              title="Permanently remove past events to optimize database storage"
+            >
+              {isPruning ? 'Pruning...' : '🧹 Prune Past Events'}
+            </button>
+            <button
               onClick={fetchEvents}
-              disabled={loading}
+              disabled={loading || isPruning}
               className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition disabled:opacity-50 ${activeTheme.deepScrapeBtn}`}
             >
               {loading ? 'Refreshing...' : '🔄 Refresh Events'}

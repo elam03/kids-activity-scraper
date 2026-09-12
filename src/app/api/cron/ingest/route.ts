@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { scrapeInstagramAccount } from '@/lib/apify';
 import { ingestEvent } from '@/lib/event-ingestion';
+import { buildPastEventsPruneWhere } from '@/lib/event-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +63,7 @@ async function handleCronTrigger(request: Request) {
       where: { isActive: true },
     });
 
-    // 2.1 Daily Cleanup: Delete events in the past (where startDate < today)
+    // 2.1 Daily Cleanup: Delete events in the past (endDate < today or endDate is null and startDate < today)
     // We get the local date string to avoid timezone boundary issues
     const now = new Date();
     const year = now.getFullYear();
@@ -71,9 +72,7 @@ async function handleCronTrigger(request: Request) {
     const todayStr = `${year}-${month}-${day}`;
     
     await prisma.event.deleteMany({
-      where: {
-        startDate: { lt: todayStr }
-      }
+      where: buildPastEventsPruneWhere(todayStr),
     });
 
     const report: Array<{

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { buildPastEventsPruneWhere } from '@/lib/event-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,11 +48,26 @@ export async function GET(request: Request) {
 }
 
 // POST /api/admin/events
-// Approve, edit, or reject an event
+// Approve, edit, or reject an event, or prune past events
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { id, status, action, clearReports, ...updateFields } = body;
+
+    // Support pruning past events
+    if (action === 'prune_past_events' || action === 'prune_past') {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
+
+      const result = await prisma.event.deleteMany({
+        where: buildPastEventsPruneWhere(todayStr),
+      });
+
+      return NextResponse.json({ success: true, prunedCount: result.count });
+    }
 
     if (!id) {
       return NextResponse.json(
@@ -107,12 +123,27 @@ export async function POST(request: Request) {
   }
 }
 
-// DELETE /api/admin/events?id=<id>
-// Permanently hard delete an event
+// DELETE /api/admin/events?id=<id> (or ?action=prune_past)
+// Permanently hard delete an event or prune past events
 export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const action = searchParams.get('action');
+
+    if (action === 'prune_past' || action === 'prune_past_events') {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
+
+      const result = await prisma.event.deleteMany({
+        where: buildPastEventsPruneWhere(todayStr),
+      });
+
+      return NextResponse.json({ success: true, prunedCount: result.count });
+    }
 
     if (!id) {
       return NextResponse.json(

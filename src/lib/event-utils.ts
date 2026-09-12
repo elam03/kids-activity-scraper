@@ -116,3 +116,41 @@ export function toggleAgeGroup(currentSelected: string[], groupToToggle: string)
   return [...currentSelected, groupToToggle];
 }
 
+export interface EventDateRange {
+  startDate: string;
+  endDate?: string | null;
+}
+
+/**
+ * Checks whether an event is in the past relative to a reference date (YYYY-MM-DD).
+ * If the event has an endDate, it is in the past if endDate < referenceDate.
+ * If the event does not have an endDate, it is in the past if startDate < referenceDate.
+ */
+export function isPastEvent(event: EventDateRange, referenceDate: string): boolean {
+  if (event.endDate && event.endDate.trim() !== '') {
+    return event.endDate < referenceDate;
+  }
+  return event.startDate < referenceDate;
+}
+
+/**
+ * Constructs a Prisma where clause to identify past events that can be pruned.
+ * Matches events where:
+ * - endDate is set and < referenceDate
+ * - or endDate is null and startDate < referenceDate
+ */
+export function buildPastEventsPruneWhere(referenceDate: string) {
+  return {
+    OR: [
+      {
+        endDate: { not: null, lt: referenceDate },
+      },
+      {
+        endDate: null,
+        startDate: { lt: referenceDate },
+      },
+    ],
+  };
+}
+
+
