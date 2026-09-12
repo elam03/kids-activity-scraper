@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { isNeedsReview } from '@/lib/event-utils';
+import { isNeedsReview, isEscapeKey } from '@/lib/event-utils';
 
 export interface AdminEvent {
   id: string;
@@ -72,6 +72,22 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  // Dismiss edit modal on Escape key
+  useEffect(() => {
+    if (!editingEvent) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isEscapeKey(e)) {
+        setEditingEvent(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [editingEvent]);
 
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });

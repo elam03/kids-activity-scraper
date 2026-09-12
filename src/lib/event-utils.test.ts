@@ -6,6 +6,7 @@ import {
   toggleAgeGroup,
   isPastEvent,
   buildPastEventsPruneWhere,
+  isEscapeKey,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -201,5 +202,13 @@ test('buildPastEventsPruneWhere constructs valid Prisma query filter for past ev
     ],
   });
 });
+
+test('isEscapeKey correctly identifies Escape key events for dismissing modal', () => {
+  assert.equal(isEscapeKey({ key: 'Escape' }), true);
+  assert.equal(isEscapeKey({ key: 'Esc' }), true);
+  assert.equal(isEscapeKey({ key: 'Enter' }), false);
+  assert.equal(isEscapeKey({ key: 'Tab' }), false);
+});
+
 
 

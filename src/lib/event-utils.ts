@@ -153,4 +153,12 @@ export function buildPastEventsPruneWhere(referenceDate: string) {
   };
 }
 
+/**
+ * Checks whether a keyboard event corresponds to an Escape key press.
+ */
+export function isEscapeKey(event: { key: string }): boolean {
+  return event.key === 'Escape' || event.key === 'Esc';
+}
+
+
 
