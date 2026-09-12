@@ -29,7 +29,8 @@ interface IngestReport {
 }
 
 import FlyerUpload from '@/components/FlyerUpload';
-import GeocodeAuditor from '@/components/GeocodeAuditor';
+import EventsManager from '@/components/EventsManager';
+import ReviewQueue from '@/components/ReviewQueue';
 
 function SourcesManager({ activeTheme }: { activeTheme: any }) {
   const [sources, setSources] = useState<Source[]>([]);
@@ -575,7 +576,7 @@ function SourcesManager({ activeTheme }: { activeTheme: any }) {
   );
 }
 
-const themeClasses = {
+const themeClasses: Record<string, any> = {
   cosmo: {
     bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 transition-all duration-300',
     text: 'text-slate-100',
@@ -587,78 +588,116 @@ const themeClasses = {
     cardText: 'text-slate-300',
     headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-violet-200 to-indigo-200',
     navBtn: 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300',
-    badge: 'bg-slate-800 text-slate-300',
+    badge: 'bg-slate-800 text-slate-300 border-slate-700',
     activeTab: 'bg-violet-600 text-white',
     inactiveTab: 'text-slate-400 hover:text-slate-200',
     border: 'border-slate-900',
-    activeSubTab: 'border-violet-500 text-violet-400',
+    activeSubTab: 'border-violet-500 text-violet-400 font-bold',
     inactiveSubTab: 'border-transparent text-slate-400 hover:text-slate-200',
     input: 'border-slate-800 bg-slate-950 text-slate-100 placeholder:text-slate-600 focus:border-violet-500',
     deepScrapeBtn: 'bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300',
     themePicker: 'bg-slate-900/60 border-slate-800/40',
     themePickerInactive: 'text-slate-400 hover:text-slate-200',
-    modalInner: 'bg-slate-900/40 border-slate-800',
+    modal: 'bg-slate-900 border-slate-800 text-slate-100 shadow-2xl shadow-slate-950/50',
+    modalTitle: 'text-slate-100 font-bold',
+    modalInner: 'bg-slate-950/60 border-slate-800 text-slate-300',
+    closeBtn: 'text-slate-400 hover:text-slate-200 hover:bg-slate-800',
     accentText: 'text-violet-400',
+    tableHeader: 'bg-slate-950/60 text-slate-400 border-slate-800 font-bold',
+    tableDivide: 'divide-slate-800/60',
+    tableRowHover: 'hover:bg-slate-900/50',
+    tableText: 'text-slate-200',
+    tableMuted: 'text-slate-400',
   },
   bubblegum: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 transition-all duration-300',
-    text: 'text-slate-800',
-    textHeading: 'text-purple-950',
-    textMuted: 'text-purple-900/70',
-    card: 'bg-white/80 border-purple-200/60 shadow-purple-500/5 hover:border-purple-300/80 hover:bg-white',
-    cardAlt: 'bg-white border-purple-200 hover:border-purple-300',
-    cardBorder: 'border-purple-100',
-    cardText: 'text-slate-600',
+    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-900 transition-all duration-300',
+    text: 'text-slate-900',
+    textHeading: 'text-purple-950 font-bold',
+    textMuted: 'text-purple-900 font-medium',
+    card: 'bg-white border-purple-200 shadow-md shadow-purple-500/5 hover:border-purple-300',
+    cardAlt: 'bg-purple-50/80 border-purple-200 hover:border-purple-300',
+    cardBorder: 'border-purple-200',
+    cardText: 'text-slate-800 font-medium',
     headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 font-extrabold',
-    navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-slate-700',
-    badge: 'bg-purple-100 text-purple-700',
+    navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-purple-900 font-semibold shadow-sm',
+    badge: 'bg-purple-100 text-purple-800 border-purple-200 font-bold',
     activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
-    inactiveTab: 'text-purple-600/70 hover:text-purple-700',
-    border: 'border-purple-100',
-    activeSubTab: 'border-purple-600 text-purple-700',
-    inactiveSubTab: 'border-transparent text-purple-600/60 hover:text-purple-700',
-    input: 'border-purple-200 bg-white text-slate-800 placeholder:text-purple-300 focus:border-purple-500',
-    deepScrapeBtn: 'bg-white border border-purple-200 hover:border-purple-400 text-purple-800',
-    themePicker: 'bg-white/70 border-purple-200/60',
-    themePickerInactive: 'text-purple-600/70 hover:text-purple-700',
-    modalInner: 'bg-purple-50 border-purple-200',
-    accentText: 'text-purple-700',
+    inactiveTab: 'text-purple-700 hover:text-purple-900',
+    border: 'border-purple-200',
+    activeSubTab: 'border-purple-600 text-purple-900 font-bold',
+    inactiveSubTab: 'border-transparent text-purple-700/80 hover:text-purple-950',
+    input: 'border-purple-200 bg-white text-purple-950 placeholder:text-purple-400 focus:border-purple-500',
+    deepScrapeBtn: 'bg-white border border-purple-200 hover:border-purple-400 text-purple-900 font-semibold shadow-sm',
+    themePicker: 'bg-white/80 border-purple-200 shadow-sm',
+    themePickerInactive: 'text-purple-700 hover:text-purple-950',
+    modal: 'bg-white border-purple-300 text-slate-900 shadow-2xl shadow-purple-500/20',
+    modalTitle: 'text-purple-950 font-bold',
+    modalInner: 'bg-purple-50 border-purple-200 text-purple-950 font-medium',
+    closeBtn: 'text-purple-500 hover:text-purple-700 hover:bg-purple-100/70',
+    accentText: 'text-purple-900 font-bold',
+    tableHeader: 'bg-purple-100/90 text-purple-950 border-purple-200 font-bold',
+    tableDivide: 'divide-purple-200/80',
+    tableRowHover: 'hover:bg-purple-50/90',
+    tableText: 'text-slate-900 font-medium',
+    tableMuted: 'text-purple-900/80 font-medium',
   },
   jungle: {
     bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 transition-all duration-300',
     text: 'text-emerald-950',
-    textHeading: 'text-emerald-950',
-    textMuted: 'text-emerald-800/70',
-    card: 'bg-white/90 border-emerald-200/60 shadow-emerald-500/5 hover:border-emerald-300/80 hover:bg-white',
-    cardAlt: 'bg-white border-emerald-200 hover:border-emerald-300',
-    cardBorder: 'border-emerald-100',
-    cardText: 'text-emerald-800',
+    textHeading: 'text-emerald-950 font-bold',
+    textMuted: 'text-emerald-900 font-medium',
+    card: 'bg-white border-emerald-200 shadow-md shadow-emerald-500/5 hover:border-emerald-300',
+    cardAlt: 'bg-emerald-50/80 border-emerald-200 hover:border-emerald-300',
+    cardBorder: 'border-emerald-200',
+    cardText: 'text-emerald-950 font-medium',
     headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-amber-700 font-extrabold',
-    navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900',
-    badge: 'bg-emerald-100 text-emerald-800',
+    navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900 font-semibold shadow-sm',
+    badge: 'bg-emerald-100 text-emerald-800 border-emerald-200 font-bold',
     activeTab: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20',
-    inactiveTab: 'text-emerald-700/70 hover:text-emerald-800',
-    border: 'border-emerald-100',
-    activeSubTab: 'border-emerald-600 text-emerald-700',
-    inactiveSubTab: 'border-transparent text-emerald-700/60 hover:text-emerald-800',
-    input: 'border-emerald-200 bg-white text-emerald-950 placeholder:text-emerald-400 focus:border-emerald-500',
-    deepScrapeBtn: 'bg-white border border-emerald-200 hover:border-emerald-400 text-emerald-900',
-    themePicker: 'bg-white/70 border-emerald-200/60',
-    themePickerInactive: 'text-emerald-700/70 hover:text-emerald-800',
-    modalInner: 'bg-emerald-50 border-emerald-200',
-    accentText: 'text-emerald-700',
+    inactiveTab: 'text-emerald-800 hover:text-emerald-950',
+    border: 'border-emerald-200',
+    activeSubTab: 'border-emerald-600 text-emerald-950 font-bold',
+    inactiveSubTab: 'border-transparent text-emerald-800/80 hover:text-emerald-950',
+    input: 'border-emerald-200 bg-white text-emerald-950 placeholder:text-emerald-500 focus:border-emerald-500',
+    deepScrapeBtn: 'bg-white border border-emerald-200 hover:border-emerald-400 text-emerald-900 font-semibold shadow-sm',
+    themePicker: 'bg-white/80 border-emerald-200 shadow-sm',
+    themePickerInactive: 'text-emerald-800 hover:text-emerald-950',
+    modal: 'bg-white border-emerald-300 text-emerald-950 shadow-2xl shadow-emerald-500/20',
+    modalTitle: 'text-emerald-950 font-bold',
+    modalInner: 'bg-emerald-50 border-emerald-200 text-emerald-950 font-medium',
+    closeBtn: 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100/70',
+    accentText: 'text-emerald-900 font-bold',
+    tableHeader: 'bg-emerald-100/90 text-emerald-950 border-emerald-200 font-bold',
+    tableDivide: 'divide-emerald-200/80',
+    tableRowHover: 'hover:bg-emerald-50/90',
+    tableText: 'text-emerald-950 font-medium',
+    tableMuted: 'text-emerald-900/80 font-medium',
   }
 };
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'sources' | 'upload' | 'auditor'>('sources');
+  const [activeTab, setActiveTab] = useState<'sources' | 'upload' | 'review' | 'events'>('sources');
   const [theme, setTheme] = useState<'cosmo' | 'bubblegum' | 'jungle'>('cosmo');
+  const [pendingCount, setPendingCount] = useState<number>(0);
+
+  const fetchPendingCount = async () => {
+    try {
+      const res = await fetch('/api/admin/events?status=pending&countOnly=true');
+      if (res.ok) {
+        const data = await res.json();
+        setPendingCount(data.count || 0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch pending count:', err);
+    }
+  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('calendar-theme');
     if (savedTheme && ['cosmo', 'bubblegum', 'jungle'].includes(savedTheme)) {
       setTheme(savedTheme as any);
     }
+    fetchPendingCount();
   }, []);
 
   const changeTheme = (newTheme: 'cosmo' | 'bubblegum' | 'jungle') => {
@@ -708,15 +747,9 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <nav className="flex gap-3">
-              <Link href="/admin" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
-                Dashboard
-              </Link>
-              <Link href="/admin/review" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
-                Review Queue
-              </Link>
-              <Link href="/" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
-                View Calendar
+            <nav className="flex items-center gap-3">
+              <Link href="/" className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                Calendar
               </Link>
             </nav>
           </div>
@@ -725,10 +758,10 @@ export default function AdminDashboard() {
 
       {/* Sub-navigation Tabs */}
       <div className={`border-b ${activeTheme.border} bg-slate-950/10 mb-6`}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex gap-6">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex gap-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('sources')}
-            className={`py-4 text-sm font-semibold border-b-2 transition ${
+            className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap ${
               activeTab === 'sources' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
             }`}
           >
@@ -736,19 +769,32 @@ export default function AdminDashboard() {
           </button>
           <button
             onClick={() => setActiveTab('upload')}
-            className={`py-4 text-sm font-semibold border-b-2 transition ${
+            className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap ${
               activeTab === 'upload' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
             }`}
           >
             Flyer Image Ingestion
           </button>
           <button
-            onClick={() => setActiveTab('auditor')}
-            className={`py-4 text-sm font-semibold border-b-2 transition ${
-              activeTab === 'auditor' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
+            onClick={() => setActiveTab('review')}
+            className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'review' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
             }`}
           >
-            Event Geocode Auditor
+            <span>Review Queue</span>
+            {pendingCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                {pendingCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap ${
+              activeTab === 'events' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
+            }`}
+          >
+            Calendar Events Manager
           </button>
         </div>
       </div>
@@ -756,7 +802,8 @@ export default function AdminDashboard() {
       <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 pb-12">
         {activeTab === 'sources' && <SourcesManager activeTheme={activeTheme} />}
         {activeTab === 'upload' && <FlyerUpload onSuccess={() => {}} activeTheme={activeTheme} />}
-        {activeTab === 'auditor' && <GeocodeAuditor activeTheme={activeTheme} />}
+        {activeTab === 'review' && <ReviewQueue activeTheme={activeTheme} onCountChange={setPendingCount} />}
+        {activeTab === 'events' && <EventsManager activeTheme={activeTheme} onRefreshNeeded={fetchPendingCount} />}
       </main>
     </div>
   );

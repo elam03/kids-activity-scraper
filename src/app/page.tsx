@@ -5,8 +5,14 @@ import dynamicNext from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
 
+import EventFeedbackButtons from '@/components/EventFeedbackButtons';
+
 // Dynamically import MapView client-side only to prevent SSR conflicts with Leaflet
 const MapView = dynamicNext(() => import('@/components/MapView'), {
+  ssr: false,
+});
+
+const EventMiniMap = dynamicNext(() => import('@/components/EventMiniMap'), {
   ssr: false,
 });
 
@@ -30,6 +36,9 @@ interface Event {
   isFree: boolean;
   registrationUrl: string | null;
   description: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  likes?: number;
 }
 
 export default function CalendarHome() {
@@ -747,13 +756,20 @@ export default function CalendarHome() {
             </button>
 
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`inline-block border px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${categoryColors[selectedEvent.category] || categoryColors.other}`}>
-                  {selectedEvent.category}
-                </span>
-                <span className="text-xs text-slate-500 font-medium">
-                  via @{selectedEvent.source.handle}
-                </span>
+              <div className="flex items-center justify-between gap-2 mb-3 pr-10">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`inline-block border px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${categoryColors[selectedEvent.category] || categoryColors.other}`}>
+                    {selectedEvent.category}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    via @{selectedEvent.source.handle}
+                  </span>
+                </div>
+                <EventFeedbackButtons
+                  eventId={selectedEvent.id}
+                  initialLikes={selectedEvent.likes || 0}
+                  activeTheme={activeTheme}
+                />
               </div>
               <h3 className={`text-xl ${activeTheme.modalTitle}`}>{selectedEvent.title}</h3>
             </div>
@@ -781,16 +797,24 @@ export default function CalendarHome() {
                 </div>
               </div>
 
-              {selectedEvent.location && (
+              {(selectedEvent.location || selectedEvent.latitude) && (
                 <div>
                   <h4 className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Where</h4>
-                  <div className={`flex gap-2 items-center font-semibold ${activeTheme.accentText}`}>
-                    <svg className="h-4 w-4 text-violet-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{selectedEvent.location}</span>
-                  </div>
+                  {selectedEvent.location && (
+                    <div className={`flex gap-2 items-center font-semibold ${activeTheme.accentText}`}>
+                      <svg className="h-4 w-4 text-violet-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span>{selectedEvent.location}</span>
+                    </div>
+                  )}
+                  <EventMiniMap
+                    title={selectedEvent.title}
+                    location={selectedEvent.location}
+                    latitude={selectedEvent.latitude}
+                    longitude={selectedEvent.longitude}
+                  />
                 </div>
               )}
 

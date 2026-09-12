@@ -209,15 +209,12 @@ const themeClasses = {
               </button>
             </div>
 
-            <nav className="flex gap-3">
-              <Link href="/admin" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
-                Dashboard
+            <nav className="flex items-center gap-3">
+              <Link href="/admin" className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                Admin Dashboard
               </Link>
-              <Link href="/admin/review" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
-                Review Queue
-              </Link>
-              <Link href="/" className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
-                View Calendar
+              <Link href="/" className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}>
+                Calendar
               </Link>
             </nav>
           </div>

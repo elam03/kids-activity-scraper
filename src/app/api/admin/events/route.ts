@@ -3,16 +3,38 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/admin/events?status=pending
+// GET /api/admin/events?status=pending (or status=all, or countOnly=true)
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'pending';
+    const countOnly = searchParams.get('countOnly') === 'true';
+
+    const whereClause = status === 'all' ? {} : { status };
+
+    if (countOnly) {
+      const count = await prisma.event.count({
+        where: whereClause,
+      });
+      return NextResponse.json({ count });
+    }
 
     const events = await prisma.event.findMany({
-      where: { status },
-      include: { source: true },
-      orderBy: { startDate: 'asc' },
+      where: whereClause,
+      include: {
+        source: true,
+        _count: {
+          select: {
+            feedbacks: {
+              where: { type: 'report_inaccurate' }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { startDate: 'asc' },
+        { startTime: 'asc' }
+      ],
     });
 
     return NextResponse.json({ events });
@@ -41,6 +63,7 @@ export async function POST(request: Request) {
     const data: any = {};
     if (status !== undefined) data.status = status;
     if (updateFields.title !== undefined) data.title = updateFields.title;
+    if (updateFields.description !== undefined) data.description = updateFields.description;
     if (updateFields.startDate !== undefined) data.startDate = updateFields.startDate;
     if (updateFields.endDate !== undefined) data.endDate = updateFields.endDate;
     if (updateFields.startTime !== undefined) data.startTime = updateFields.startTime;
@@ -52,6 +75,7 @@ export async function POST(request: Request) {
     if (updateFields.ageRange !== undefined) data.ageRange = updateFields.ageRange;
     if (updateFields.ageGroup !== undefined) data.ageGroup = updateFields.ageGroup;
     if (updateFields.registrationUrl !== undefined) data.registrationUrl = updateFields.registrationUrl;
+    if (updateFields.confidence !== undefined) data.confidence = Number(updateFields.confidence);
     if (updateFields.latitude !== undefined) data.latitude = updateFields.latitude === null ? null : Number(updateFields.latitude);
     if (updateFields.longitude !== undefined) data.longitude = updateFields.longitude === null ? null : Number(updateFields.longitude);
 
@@ -68,3 +92,31 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// DELETE /api/admin/events?id=<id>
+// Permanently hard delete an event
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Missing event id parameter' },
+        { status: 400 }
+      );
+    }
+
+    await prisma.event.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, deletedId: id });
+  } catch (error) {
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
