@@ -13,6 +13,9 @@ import {
   handleModalEscapeKey,
   formatWeekdayHeader,
   getMobileDaySummary,
+  getWeekdayHeaderClasses,
+  getMonthGridContainerClasses,
+  getMonthDayNumberClasses,
   type CalendarEvent,
 } from './calendar-query';
 
@@ -196,6 +199,42 @@ test('getMobileDaySummary generates concise badges for compact mobile screens', 
   assert.equal(getMobileDaySummary(0), '');
   assert.equal(getMobileDaySummary(1), '1 event');
   assert.equal(getMobileDaySummary(4), '4 events');
+});
+
+test('getWeekdayHeaderClasses resolves high-contrast classes for playful, jungle, and default themes', () => {
+  // Playful (bubblegum) theme
+  const playfulTheme = {
+    weekdayHeader: 'text-purple-950 bg-purple-200/90 font-extrabold',
+  };
+  assert.equal(getWeekdayHeaderClasses(playfulTheme), 'text-purple-950 bg-purple-200/90 font-extrabold');
+
+  // Jungle theme
+  const jungleTheme = {
+    weekdayHeader: 'text-emerald-950 bg-emerald-200/90 font-extrabold',
+  };
+  assert.equal(getWeekdayHeaderClasses(jungleTheme), 'text-emerald-950 bg-emerald-200/90 font-extrabold');
+
+  // Cosmo / fallback
+  assert.match(getWeekdayHeaderClasses(null), /text-slate-[1-3]00/);
+  assert.match(getWeekdayHeaderClasses({}), /text-slate-[1-3]00/);
+});
+
+test('getMonthGridContainerClasses resolves theme monthGridBg or safe default', () => {
+  assert.equal(getMonthGridContainerClasses({ monthGridBg: 'bg-white/80' }), 'bg-white/80');
+  assert.equal(getMonthGridContainerClasses(null), 'bg-slate-950/20');
+  assert.equal(getMonthGridContainerClasses({}), 'bg-slate-950/20');
+});
+
+test('getMonthDayNumberClasses prioritizes today highlight and resolves theme colors', () => {
+  // Today is highlighted in violet
+  assert.equal(getMonthDayNumberClasses(true, { dayNumber: 'text-purple-950' }), 'text-violet-500 font-bold');
+
+  // Regular day with theme dayNumber
+  assert.equal(getMonthDayNumberClasses(false, { dayNumber: 'text-purple-950 font-bold' }), 'text-purple-950 font-bold');
+  assert.equal(getMonthDayNumberClasses(false, { dayNumber: 'text-emerald-950 font-bold' }), 'text-emerald-950 font-bold');
+
+  // Default fallback
+  assert.match(getMonthDayNumberClasses(false, null), /text-slate-/);
 });
 
 

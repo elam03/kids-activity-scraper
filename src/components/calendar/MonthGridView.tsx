@@ -1,6 +1,11 @@
 'use client';
 
 import type { CalendarEvent } from '@/lib/calendar-query';
+import {
+  getWeekdayHeaderClasses,
+  getMonthGridContainerClasses,
+  getMonthDayNumberClasses,
+} from '@/lib/calendar-query';
 
 export interface MonthGridViewProps {
   monthDates: Date[];
@@ -21,7 +26,9 @@ export default function MonthGridView({
 
   return (
     <div
-      className={`grid grid-cols-7 border ${activeTheme.border} rounded-2xl overflow-hidden bg-slate-950/20 divide-y ${activeTheme.border.replace(
+      className={`grid grid-cols-7 border ${activeTheme.border} rounded-2xl overflow-hidden ${getMonthGridContainerClasses(
+        activeTheme
+      )} divide-y ${activeTheme.border.replace(
         'border-',
         'divide-'
       )} divide-x ${activeTheme.border.replace('border-', 'divide-')} shadow-md`}
@@ -29,7 +36,9 @@ export default function MonthGridView({
       {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
         <div
           key={day}
-          className="py-1.5 sm:py-2 text-center text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-950/40"
+          className={`py-1.5 sm:py-2 text-center text-[9px] sm:text-[10px] uppercase tracking-wider ${getWeekdayHeaderClasses(
+            activeTheme
+          )}`}
         >
           <span className="sm:hidden">{day[0]}</span>
           <span className="hidden sm:inline">{day}</span>
@@ -51,9 +60,7 @@ export default function MonthGridView({
           >
             <div className="flex justify-between items-baseline mb-0.5 sm:mb-1">
               <span
-                className={`text-[9px] sm:text-[10px] font-bold ${
-                  isToday ? 'text-violet-500' : 'text-slate-500'
-                }`}
+                className={`text-[9px] sm:text-[10px] ${getMonthDayNumberClasses(isToday, activeTheme)}`}
               >
                 {date.getDate()}
               </span>

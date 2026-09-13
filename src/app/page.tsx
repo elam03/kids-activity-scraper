@@ -69,6 +69,9 @@ const themeClasses = {
     themePicker: 'bg-slate-900/60 border-slate-800/40',
     themePickerInactive: 'text-slate-400 hover:text-slate-200',
     viewSelectBg: 'bg-slate-900 border border-slate-800',
+    weekdayHeader: 'text-slate-200 bg-slate-900/90 font-bold',
+    monthGridBg: 'bg-slate-950/40',
+    dayNumber: 'text-slate-300 font-semibold',
   },
   bubblegum: {
     bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-800 flex flex-col justify-between transition-all duration-300',
@@ -96,6 +99,9 @@ const themeClasses = {
     themePicker: 'bg-white/80 border-purple-200 shadow-sm',
     themePickerInactive: 'text-purple-700 hover:text-purple-950',
     viewSelectBg: 'bg-white border border-purple-200 shadow-sm',
+    weekdayHeader: 'text-purple-950 bg-purple-200/90 font-extrabold',
+    monthGridBg: 'bg-white/80',
+    dayNumber: 'text-purple-950 font-bold',
   },
   jungle: {
     bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
@@ -123,6 +129,9 @@ const themeClasses = {
     themePicker: 'bg-white/80 border-emerald-200 shadow-sm',
     themePickerInactive: 'text-emerald-800 hover:text-emerald-950',
     viewSelectBg: 'bg-white border border-emerald-200 shadow-sm',
+    weekdayHeader: 'text-emerald-950 bg-emerald-200/90 font-extrabold',
+    monthGridBg: 'bg-white/80',
+    dayNumber: 'text-emerald-950 font-bold',
   },
 };
 

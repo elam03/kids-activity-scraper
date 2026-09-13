@@ -232,4 +232,46 @@ export function getMobileDaySummary(eventsCount: number): string {
   return `${eventsCount} events`;
 }
 
+export interface CalendarThemeConfig {
+  weekdayHeader?: string;
+  monthGridBg?: string;
+  dayNumber?: string;
+  [key: string]: any;
+}
+
+/**
+ * Resolves Tailwind classes for weekday header columns in the month grid view.
+ * Ensures strong contrast across light and dark themes.
+ */
+export function getWeekdayHeaderClasses(theme?: Partial<CalendarThemeConfig> | null): string {
+  if (theme?.weekdayHeader) {
+    return theme.weekdayHeader;
+  }
+  return 'text-slate-200 bg-slate-950/60 font-bold';
+}
+
+/**
+ * Resolves Tailwind classes for the month grid container background.
+ */
+export function getMonthGridContainerClasses(theme?: Partial<CalendarThemeConfig> | null): string {
+  if (theme?.monthGridBg) {
+    return theme.monthGridBg;
+  }
+  return 'bg-slate-950/20';
+}
+
+/**
+ * Resolves Tailwind classes for calendar day numbers in month view cells.
+ */
+export function getMonthDayNumberClasses(isToday: boolean, theme?: Partial<CalendarThemeConfig> | null): string {
+  if (isToday) {
+    return 'text-violet-500 font-bold';
+  }
+  if (theme?.dayNumber) {
+    return theme.dayNumber;
+  }
+  return 'text-slate-400 font-medium';
+}
+
+
 
