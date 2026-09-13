@@ -165,6 +165,18 @@ export function isEscapeKey(event: { key: string }): boolean {
  */
 export const KOFI_DONATION_URL = 'https://ko-fi.com/elam03';
 
+/**
+ * Validates whether a given string is a valid Google Analytics 4 (GA4) measurement ID.
+ * Expected format: G-XXXXXXXXXX (e.g. 'G-' followed by alphanumeric characters).
+ */
+export function isValidGaMeasurementId(id?: string | null): boolean {
+  if (!id || typeof id !== 'string') {
+    return false;
+  }
+  const trimmed = id.trim();
+  return /^G-[A-Z0-9]+$/i.test(trimmed);
+}
+
 
 
 

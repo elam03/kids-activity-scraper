@@ -8,6 +8,7 @@ import {
   buildPastEventsPruneWhere,
   isEscapeKey,
   KOFI_DONATION_URL,
+  isValidGaMeasurementId,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -214,6 +215,25 @@ test('isEscapeKey correctly identifies Escape key events for dismissing modal', 
 test('KOFI_DONATION_URL contains valid https Ko-fi URL for creator', () => {
   assert.equal(KOFI_DONATION_URL, 'https://ko-fi.com/elam03');
   assert.match(KOFI_DONATION_URL, /^https:\/\/ko-fi\.com\/[a-zA-Z0-9_-]+$/);
+});
+
+test('isValidGaMeasurementId validates GA4 measurement IDs correctly', () => {
+  // Valid GA4 IDs
+  assert.equal(isValidGaMeasurementId('G-ABC123XYZ'), true);
+  assert.equal(isValidGaMeasurementId('G-1234567890'), true);
+  assert.equal(isValidGaMeasurementId('g-lowercase123'), true);
+  assert.equal(isValidGaMeasurementId('  G-TRIMMED123  '), true);
+
+  // Invalid IDs
+  assert.equal(isValidGaMeasurementId(''), false);
+  assert.equal(isValidGaMeasurementId('   '), false);
+  assert.equal(isValidGaMeasurementId(undefined), false);
+  assert.equal(isValidGaMeasurementId(null), false);
+  assert.equal(isValidGaMeasurementId('UA-12345678-1'), false);
+  assert.equal(isValidGaMeasurementId('G-'), false);
+  assert.equal(isValidGaMeasurementId('G'), false);
+  assert.equal(isValidGaMeasurementId('random-string'), false);
+  assert.equal(isValidGaMeasurementId('G-INVALID!CHAR'), false);
 });
 
 
