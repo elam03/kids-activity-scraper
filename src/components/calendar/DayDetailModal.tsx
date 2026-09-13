@@ -53,13 +53,13 @@ export default function DayDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`w-full max-w-lg rounded-2xl border p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[85vh] flex flex-col`}
+        className={`w-full max-w-lg rounded-2xl border p-4 sm:p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[88vh] sm:max-h-[85vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

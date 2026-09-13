@@ -216,3 +216,20 @@ export function handleModalEscapeKey<T = unknown>(state: CalendarModalState<T>):
   return state;
 }
 
+/**
+ * Formats a Date object into weekday label ('Sun' for short, 'S' for narrow on compact mobile screens).
+ */
+export function formatWeekdayHeader(date: Date, format: 'short' | 'narrow' = 'short'): string {
+  return date.toLocaleDateString('en-US', { weekday: format });
+}
+
+/**
+ * Returns a concise summary label for event counts on compact mobile screens.
+ */
+export function getMobileDaySummary(eventsCount: number): string {
+  if (eventsCount <= 0) return '';
+  if (eventsCount === 1) return '1 event';
+  return `${eventsCount} events`;
+}
+
+

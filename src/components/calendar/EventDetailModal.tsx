@@ -27,13 +27,13 @@ export default function EventDetailModal({
 }: EventDetailModalProps) {
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`w-full max-w-xl rounded-2xl border p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal}`}
+        className={`w-full max-w-xl rounded-2xl border p-4 sm:p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[90vh] flex flex-col overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -45,8 +45,8 @@ export default function EventDetailModal({
           </svg>
         </button>
 
-        <div>
-          <div className="flex items-center justify-between gap-2 mb-3 pr-10">
+        <div className="flex-shrink-0 pr-8">
+          <div className="flex items-center justify-between gap-2 mb-2 pr-6">
             <div className="flex items-center gap-2 flex-wrap">
               <span
                 className={`inline-block border px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider ${
@@ -63,11 +63,11 @@ export default function EventDetailModal({
               activeTheme={activeTheme}
             />
           </div>
-          <h3 className={`text-xl ${activeTheme.modalTitle}`}>{event.title}</h3>
+          <h3 className={`text-lg sm:text-xl font-bold ${activeTheme.modalTitle}`}>{event.title}</h3>
         </div>
 
-        <div className="mt-6 space-y-4 text-xs">
-          <div className={`grid grid-cols-2 gap-4 p-4 rounded-xl border ${activeTheme.modalInner}`}>
+        <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-xs my-3 custom-scrollbar">
+          <div className={`grid grid-cols-2 gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border ${activeTheme.modalInner}`}>
             <div>
               <div className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">When</div>
               <div className={`font-semibold ${activeTheme.accentText}`}>
@@ -133,7 +133,7 @@ export default function EventDetailModal({
           </div>
         </div>
 
-        <div className="mt-8 pt-4 border-t border-slate-200/10 flex justify-between items-center gap-4">
+        <div className="mt-2 pt-3 sm:pt-4 border-t border-slate-200/10 flex flex-wrap justify-between items-center gap-3 flex-shrink-0">
           {/* Back button — only shown when navigated from the day modal */}
           {isFromDayModal ? (
             <button

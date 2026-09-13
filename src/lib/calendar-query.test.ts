@@ -11,6 +11,8 @@ import {
   getActiveMultiDayEvents,
   calculateNextPivotDate,
   handleModalEscapeKey,
+  formatWeekdayHeader,
+  getMobileDaySummary,
   type CalendarEvent,
 } from './calendar-query';
 
@@ -177,4 +179,23 @@ test('handleModalEscapeKey dismisses top modal first when both day and event mod
   assert.equal(next2.selectedEvent, null);
   assert.equal(next2.selectedDateForDetails, null);
 });
+
+test('formatWeekdayHeader formats weekday for mobile narrow and standard short view', () => {
+  // Sunday
+  const sunday = new Date(2026, 8, 13);
+  assert.equal(formatWeekdayHeader(sunday, 'short'), 'Sun');
+  assert.equal(formatWeekdayHeader(sunday, 'narrow'), 'S');
+
+  // Wednesday
+  const wednesday = new Date(2026, 8, 16);
+  assert.equal(formatWeekdayHeader(wednesday, 'short'), 'Wed');
+  assert.equal(formatWeekdayHeader(wednesday, 'narrow'), 'W');
+});
+
+test('getMobileDaySummary generates concise badges for compact mobile screens', () => {
+  assert.equal(getMobileDaySummary(0), '');
+  assert.equal(getMobileDaySummary(1), '1 event');
+  assert.equal(getMobileDaySummary(4), '4 events');
+});
+
 

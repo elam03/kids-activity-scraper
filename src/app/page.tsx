@@ -217,22 +217,22 @@ export default function CalendarHome() {
     <div className={activeTheme.bg}>
       <div className="mx-auto max-w-7xl w-full">
         {/* Header bar */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-lg shadow-violet-500/20">
-              <span className="text-2xl">✨</span>
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-lg shadow-violet-500/20 shrink-0">
+              <span className="text-xl sm:text-2xl">✨</span>
             </div>
             <div>
-              <h1 className={`text-2xl tracking-tight ${activeTheme.headerText}`}>
+              <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${activeTheme.headerText}`}>
                 Kids Calendar South Bay
               </h1>
-              <p className={`text-xs ${activeTheme.textMuted}`}>
+              <p className={`text-[11px] sm:text-xs ${activeTheme.textMuted}`}>
                 Discover activities, festivals, camps & outings in Silicon Valley
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             {/* Theme Selector */}
             <div className={`inline-flex rounded-xl p-0.5 ${activeTheme.themePicker}`}>
               <button
@@ -291,7 +291,7 @@ export default function CalendarHome() {
 
             <a
               href="/admin"
-              className={`px-4 py-2 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}
             >
               Admin Area
             </a>
@@ -300,11 +300,11 @@ export default function CalendarHome() {
 
         {/* Filters Toolbar */}
         <div
-          className={`flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-4 mb-6 rounded-2xl border ${activeTheme.card} transition-all duration-300`}
+          className={`flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between p-3.5 sm:p-4 mb-6 rounded-2xl border ${activeTheme.card} transition-all duration-300`}
         >
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full lg:w-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
             {/* Age Filter Multi-Select Pills */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 shrink-0">
                 Age Range:
               </span>
@@ -330,14 +330,14 @@ export default function CalendarHome() {
             </div>
 
             {/* Category Filter */}
-            <div className="flex items-center gap-2 shrink-0">
-              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
+            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+              <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 shrink-0">
                 Category:
               </label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className={`rounded-xl border px-3 py-1.5 text-xs outline-none transition max-w-[160px] cursor-pointer ${activeTheme.input}`}
+                className={`rounded-xl border px-3 py-1.5 text-xs outline-none transition w-full sm:w-auto sm:max-w-[180px] cursor-pointer ${activeTheme.input}`}
               >
                 <option value="all">✨ All Categories</option>
                 <option value="sports">⚽ Sports</option>
@@ -351,15 +351,15 @@ export default function CalendarHome() {
             </div>
           </div>
 
-          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider shrink-0 self-end lg:self-auto">
+          <div className="text-[10px] sm:text-[11px] text-slate-500 font-bold uppercase tracking-wider shrink-0 self-end lg:self-auto">
             Showing {filteredEvents.length} activities
           </div>
         </div>
 
         {/* Date Navigator (Hidden in Map View since map shows all events) */}
         {viewMode !== 'map' && (
-          <div className="flex items-center justify-between mb-6">
-            <h3 className={`text-lg font-bold ${activeTheme.textHeading}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <h3 className={`text-base sm:text-lg font-bold ${activeTheme.textHeading}`}>
               {viewMode === 'day'
                 ? `Week of ${weekDates[0].toLocaleDateString('en-US', {
                     month: 'short',
@@ -371,10 +371,11 @@ export default function CalendarHome() {
                   })}`
                 : formatMonthName(currentPivotDate)}
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               <button
                 onClick={() => changePivot(-1)}
                 className={`p-2 rounded-lg border transition ${activeTheme.chevron}`}
+                aria-label="Previous period"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -389,6 +390,7 @@ export default function CalendarHome() {
               <button
                 onClick={() => changePivot(1)}
                 className={`p-2 rounded-lg border transition ${activeTheme.chevron}`}
+                aria-label="Next period"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
