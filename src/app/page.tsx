@@ -20,6 +20,7 @@ import MonthGridView from '@/components/calendar/MonthGridView';
 import OngoingProgramsList from '@/components/calendar/OngoingProgramsList';
 import EventDetailModal from '@/components/calendar/EventDetailModal';
 import DayDetailModal from '@/components/calendar/DayDetailModal';
+import AboutModal from '@/components/AboutModal';
 
 // Dynamically import MapView client-side only to prevent SSR conflicts with Leaflet
 const MapView = dynamicNext(() => import('@/components/MapView'), {
@@ -143,6 +144,7 @@ export default function CalendarHome() {
   const [viewMode, setViewMode] = useState<'day' | 'month' | 'map'>('day');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedDateForDetails, setSelectedDateForDetails] = useState<Date | null>(null);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Filter States
@@ -236,10 +238,10 @@ export default function CalendarHome() {
             </div>
             <div>
               <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${activeTheme.headerText}`}>
-                Kids Calendar South Bay
+                Little Days Out
               </h1>
               <p className={`text-[11px] sm:text-xs ${activeTheme.textMuted}`}>
-                Discover activities, festivals, camps & outings in Silicon Valley
+                Kids activities & family events in the San Francisco Bay Area
               </p>
             </div>
           </div>
@@ -311,6 +313,15 @@ export default function CalendarHome() {
               <span>☕</span>
               <span>Tip</span>
             </a>
+
+            <button
+              onClick={() => setIsAboutOpen(true)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold border transition shadow-sm ${activeTheme.navBtn}`}
+              title="About Little Days Out"
+            >
+              <span>👨‍👩‍👧‍👦</span>
+              <span>About</span>
+            </button>
 
             <a
               href="/admin"
@@ -478,8 +489,15 @@ export default function CalendarHome() {
 
         {/* Page Footer */}
         <footer className="mt-12 pt-6 pb-6 border-t border-slate-500/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} Kids Calendar South Bay • Family Activities in Silicon Valley</p>
+          <p>© {new Date().getFullYear()} Little Days Out • Kids Activities in SF Bay Area</p>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsAboutOpen(true)}
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition font-medium"
+            >
+              <span>👨‍👩‍👧‍👦</span>
+              <span>About</span>
+            </button>
             <a
               href={KOFI_DONATION_URL}
               target="_blank"
@@ -493,6 +511,13 @@ export default function CalendarHome() {
           </div>
         </footer>
       </div>
+
+      {/* About Modal */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+        activeTheme={activeTheme}
+      />
 
       {/* Day Detail Modal */}
       {selectedDateForDetails && (
