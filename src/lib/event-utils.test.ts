@@ -11,6 +11,8 @@ import {
   isValidGaMeasurementId,
   DEFAULT_GA_MEASUREMENT_ID,
   resolveGaMeasurementId,
+  ensureHttps,
+  getSecurityHeaders,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -258,6 +260,25 @@ test('resolveGaMeasurementId resolves configured ID or falls back to default saf
   assert.equal(resolveGaMeasurementId('invalid-measurement-id'), null);
   assert.equal(resolveGaMeasurementId('UA-12345-1'), null);
 });
+
+test('ensureHttps upgrades http URLs to secure https', () => {
+  assert.equal(ensureHttps('http://www.littledaysout.com'), 'https://www.littledaysout.com');
+  assert.equal(ensureHttps('http://littledaysout.com/events'), 'https://littledaysout.com/events');
+  assert.equal(ensureHttps('https://www.littledaysout.com'), 'https://www.littledaysout.com');
+  assert.equal(ensureHttps(''), '');
+});
+
+test('getSecurityHeaders returns HSTS, nosniff, and anti-clickjacking headers', () => {
+  const headers = getSecurityHeaders();
+  const headerMap = Object.fromEntries(headers.map((h) => [h.key, h.value]));
+
+  assert.match(headerMap['Strict-Transport-Security'], /max-age=\d+/);
+  assert.match(headerMap['Strict-Transport-Security'], /includeSubDomains/);
+  assert.equal(headerMap['X-Content-Type-Options'], 'nosniff');
+  assert.equal(headerMap['X-Frame-Options'], 'SAMEORIGIN');
+  assert.equal(headerMap['Referrer-Policy'], 'strict-origin-when-cross-origin');
+});
+
 
 
 

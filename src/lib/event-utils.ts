@@ -195,7 +195,34 @@ export function resolveGaMeasurementId(configuredId?: string | null): string | n
   return isValidGaMeasurementId(candidate) ? candidate : null;
 }
 
+/**
+ * Ensures a web URL uses the secure HTTPS protocol.
+ */
+export function ensureHttps(url: string): string {
+  if (!url) return '';
+  return url.replace(/^http:\/\//i, 'https://');
+}
 
-
-
-
+/**
+ * Standard HTTP security headers for production Next.js application.
+ */
+export function getSecurityHeaders(): Array<{ key: string; value: string }> {
+  return [
+    {
+      key: 'Strict-Transport-Security',
+      value: 'max-age=63072000; includeSubDomains; preload',
+    },
+    {
+      key: 'X-Content-Type-Options',
+      value: 'nosniff',
+    },
+    {
+      key: 'X-Frame-Options',
+      value: 'SAMEORIGIN',
+    },
+    {
+      key: 'Referrer-Policy',
+      value: 'strict-origin-when-cross-origin',
+    },
+  ];
+}
