@@ -177,6 +177,25 @@ export function isValidGaMeasurementId(id?: string | null): boolean {
   return /^G-[A-Z0-9]+$/i.test(trimmed);
 }
 
+/**
+ * Default Google Analytics 4 (GA4) measurement ID for the application.
+ */
+export const DEFAULT_GA_MEASUREMENT_ID = 'G-P4ZPYFWRLK';
+
+/**
+ * Resolves the active Google Analytics measurement ID from environment or default.
+ * Returns null if the resolved measurement ID is invalid or disabled.
+ */
+export function resolveGaMeasurementId(configuredId?: string | null): string | null {
+  const candidate =
+    configuredId !== undefined && configuredId !== null && configuredId.trim() !== ''
+      ? configuredId.trim()
+      : DEFAULT_GA_MEASUREMENT_ID;
+
+  return isValidGaMeasurementId(candidate) ? candidate : null;
+}
+
+
 
 
 

@@ -9,6 +9,8 @@ import {
   isEscapeKey,
   KOFI_DONATION_URL,
   isValidGaMeasurementId,
+  DEFAULT_GA_MEASUREMENT_ID,
+  resolveGaMeasurementId,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -234,6 +236,27 @@ test('isValidGaMeasurementId validates GA4 measurement IDs correctly', () => {
   assert.equal(isValidGaMeasurementId('G'), false);
   assert.equal(isValidGaMeasurementId('random-string'), false);
   assert.equal(isValidGaMeasurementId('G-INVALID!CHAR'), false);
+});
+
+test('DEFAULT_GA_MEASUREMENT_ID is configured with valid G-P4ZPYFWRLK tag', () => {
+  assert.equal(DEFAULT_GA_MEASUREMENT_ID, 'G-P4ZPYFWRLK');
+  assert.equal(isValidGaMeasurementId(DEFAULT_GA_MEASUREMENT_ID), true);
+});
+
+test('resolveGaMeasurementId resolves configured ID or falls back to default safely', () => {
+  // Falls back to default when undefined or empty
+  assert.equal(resolveGaMeasurementId(undefined), 'G-P4ZPYFWRLK');
+  assert.equal(resolveGaMeasurementId(null), 'G-P4ZPYFWRLK');
+  assert.equal(resolveGaMeasurementId(''), 'G-P4ZPYFWRLK');
+  assert.equal(resolveGaMeasurementId('   '), 'G-P4ZPYFWRLK');
+
+  // Custom valid measurement ID overrides default
+  assert.equal(resolveGaMeasurementId('G-CUSTOM999'), 'G-CUSTOM999');
+  assert.equal(resolveGaMeasurementId('  G-CUSTOM999  '), 'G-CUSTOM999');
+
+  // Invalid configured ID returns null to prevent script injection or broken tags
+  assert.equal(resolveGaMeasurementId('invalid-measurement-id'), null);
+  assert.equal(resolveGaMeasurementId('UA-12345-1'), null);
 });
 
 

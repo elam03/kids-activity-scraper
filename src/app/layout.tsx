@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Outfit } from 'next/font/google';
 import Script from 'next/script';
-import { isValidGaMeasurementId } from '@/lib/event-utils';
+import { resolveGaMeasurementId } from '@/lib/event-utils';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -16,13 +16,12 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID?.trim();
-  const hasValidGa = isValidGaMeasurementId(gaId);
+  const gaId = resolveGaMeasurementId(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
 
   return (
     <html lang="en" className="h-full">
       <body className={`${outfit.className} min-h-screen antialiased`}>
-        {hasValidGa && gaId && (
+        {gaId && (
           <>
             <Script
               strategy="afterInteractive"
@@ -36,9 +35,7 @@ export default function RootLayout({
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
-                  gtag('config', '${gaId}', {
-                    page_path: window.location.pathname,
-                  });
+                  gtag('config', '${gaId}');
                 `,
               }}
             />
