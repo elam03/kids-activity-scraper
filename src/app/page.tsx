@@ -5,7 +5,7 @@ import dynamicNext from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
 
-import { toggleAgeGroup } from '@/lib/event-utils';
+import { toggleAgeGroup, KOFI_DONATION_URL } from '@/lib/event-utils';
 import {
   useCalendarQuery,
   calculateNextPivotDate,
@@ -290,6 +290,17 @@ export default function CalendarHome() {
             </div>
 
             <a
+              href={KOFI_DONATION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition active:scale-95 shadow-sm"
+              title="Support this project on Ko-fi"
+            >
+              <span>☕</span>
+              <span>Tip</span>
+            </a>
+
+            <a
               href="/admin"
               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}
             >
@@ -452,6 +463,23 @@ export default function CalendarHome() {
             />
           </div>
         )}
+
+        {/* Page Footer */}
+        <footer className="mt-12 pt-6 pb-6 border-t border-slate-500/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <p>© {new Date().getFullYear()} Kids Calendar South Bay • Family Activities in Silicon Valley</p>
+          <div className="flex items-center gap-4">
+            <a
+              href={KOFI_DONATION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-rose-400 transition font-medium"
+              title="Support this project on Ko-fi"
+            >
+              <span>☕</span>
+              <span>Tip on Ko-fi</span>
+            </a>
+          </div>
+        </footer>
       </div>
 
       {/* Day Detail Modal */}

@@ -160,5 +160,11 @@ export function isEscapeKey(event: { key: string }): boolean {
   return event.key === 'Escape' || event.key === 'Esc';
 }
 
+/**
+ * Official Ko-fi tipping/donation URL for creator support.
+ */
+export const KOFI_DONATION_URL = 'https://ko-fi.com/elam03';
+
+
 
 

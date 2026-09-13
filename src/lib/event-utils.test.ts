@@ -7,6 +7,7 @@ import {
   isPastEvent,
   buildPastEventsPruneWhere,
   isEscapeKey,
+  KOFI_DONATION_URL,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -209,6 +210,12 @@ test('isEscapeKey correctly identifies Escape key events for dismissing modal', 
   assert.equal(isEscapeKey({ key: 'Enter' }), false);
   assert.equal(isEscapeKey({ key: 'Tab' }), false);
 });
+
+test('KOFI_DONATION_URL contains valid https Ko-fi URL for creator', () => {
+  assert.equal(KOFI_DONATION_URL, 'https://ko-fi.com/elam03');
+  assert.match(KOFI_DONATION_URL, /^https:\/\/ko-fi\.com\/[a-zA-Z0-9_-]+$/);
+});
+
 
 
 
