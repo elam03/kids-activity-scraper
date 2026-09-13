@@ -5,6 +5,11 @@ import Link from 'next/link';
 import FlyerUpload from '@/components/FlyerUpload';
 import EventsManager from '@/components/EventsManager';
 import SourcesManager from '@/components/SourcesManager';
+import {
+  DEFAULT_CALENDAR_THEME,
+  resolveCalendarTheme,
+  type CalendarThemeName,
+} from '@/lib/calendar-query';
 
 const themeClasses: Record<string, any> = {
   cosmo: {
@@ -107,7 +112,7 @@ const themeClasses: Record<string, any> = {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'sources' | 'upload' | 'events'>('sources');
-  const [theme, setTheme] = useState<'cosmo' | 'bubblegum' | 'jungle'>('cosmo');
+  const [theme, setTheme] = useState<CalendarThemeName>(DEFAULT_CALENDAR_THEME);
   const [pendingCount, setPendingCount] = useState<number>(0);
 
   const fetchPendingCount = async () => {
@@ -124,13 +129,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('calendar-theme');
-    if (savedTheme && ['cosmo', 'bubblegum', 'jungle'].includes(savedTheme)) {
-      setTheme(savedTheme as any);
+    if (savedTheme) {
+      setTheme(resolveCalendarTheme(savedTheme));
     }
     fetchPendingCount();
   }, []);
 
-  const changeTheme = (newTheme: 'cosmo' | 'bubblegum' | 'jungle') => {
+  const changeTheme = (newTheme: CalendarThemeName) => {
     setTheme(newTheme);
     localStorage.setItem('calendar-theme', newTheme);
   };

@@ -16,6 +16,8 @@ import {
   getWeekdayHeaderClasses,
   getMonthGridContainerClasses,
   getMonthDayNumberClasses,
+  DEFAULT_CALENDAR_THEME,
+  resolveCalendarTheme,
   type CalendarEvent,
 } from './calendar-query';
 
@@ -235,6 +237,22 @@ test('getMonthDayNumberClasses prioritizes today highlight and resolves theme co
 
   // Default fallback
   assert.match(getMonthDayNumberClasses(false, null), /text-slate-/);
+});
+
+test('DEFAULT_CALENDAR_THEME defaults to jungle', () => {
+  assert.equal(DEFAULT_CALENDAR_THEME, 'jungle');
+});
+
+test('resolveCalendarTheme resolves valid theme names and defaults to jungle', () => {
+  assert.equal(resolveCalendarTheme('jungle'), 'jungle');
+  assert.equal(resolveCalendarTheme('cosmo'), 'cosmo');
+  assert.equal(resolveCalendarTheme('bubblegum'), 'bubblegum');
+
+  // Falls back to jungle for null, undefined, empty, or unknown strings
+  assert.equal(resolveCalendarTheme(null), 'jungle');
+  assert.equal(resolveCalendarTheme(undefined), 'jungle');
+  assert.equal(resolveCalendarTheme(''), 'jungle');
+  assert.equal(resolveCalendarTheme('unknown-theme'), 'jungle');
 });
 
 

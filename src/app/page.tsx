@@ -10,7 +10,10 @@ import {
   useCalendarQuery,
   calculateNextPivotDate,
   handleModalEscapeKey,
+  DEFAULT_CALENDAR_THEME,
+  resolveCalendarTheme,
   type CalendarEvent,
+  type CalendarThemeName,
 } from '@/lib/calendar-query';
 import DayTimelineView from '@/components/calendar/DayTimelineView';
 import MonthGridView from '@/components/calendar/MonthGridView';
@@ -151,16 +154,16 @@ export default function CalendarHome() {
   };
 
   // Theme State
-  const [theme, setTheme] = useState<'cosmo' | 'bubblegum' | 'jungle'>('cosmo');
+  const [theme, setTheme] = useState<CalendarThemeName>(DEFAULT_CALENDAR_THEME);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('calendar-theme');
-    if (savedTheme && ['cosmo', 'bubblegum', 'jungle'].includes(savedTheme)) {
-      setTheme(savedTheme as any);
+    if (savedTheme) {
+      setTheme(resolveCalendarTheme(savedTheme));
     }
   }, []);
 
-  const changeTheme = (newTheme: 'cosmo' | 'bubblegum' | 'jungle') => {
+  const changeTheme = (newTheme: CalendarThemeName) => {
     setTheme(newTheme);
     localStorage.setItem('calendar-theme', newTheme);
   };

@@ -273,5 +273,18 @@ export function getMonthDayNumberClasses(isToday: boolean, theme?: Partial<Calen
   return 'text-slate-400 font-medium';
 }
 
+export type CalendarThemeName = 'cosmo' | 'bubblegum' | 'jungle';
 
+export const VALID_THEMES: readonly CalendarThemeName[] = ['cosmo', 'bubblegum', 'jungle'] as const;
 
+export const DEFAULT_CALENDAR_THEME: CalendarThemeName = 'jungle';
+
+/**
+ * Resolves the active calendar theme name, defaulting to 'jungle' if undefined or invalid.
+ */
+export function resolveCalendarTheme(savedTheme?: string | null): CalendarThemeName {
+  if (savedTheme && (VALID_THEMES as readonly string[]).includes(savedTheme)) {
+    return savedTheme as CalendarThemeName;
+  }
+  return DEFAULT_CALENDAR_THEME;
+}
