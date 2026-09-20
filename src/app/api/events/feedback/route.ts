@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { validateFeedbackPayload } from '@/lib/feedback-utils';
+import {
+  getClientIp,
+  feedbackLimiter,
+  sanitizeText,
+  isAllowedOrigin,
+} from '@/lib/security-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +54,26 @@ export async function GET(request: Request) {
 // POST /api/events/feedback
 export async function POST(request: Request) {
   try {
+    const origin = request.headers.get('origin');
+    if (!isAllowedOrigin(origin)) {
+      return NextResponse.json({ error: 'Forbidden: Invalid request origin' }, { status: 403 });
+    }
+
+    const clientIp = getClientIp(request.headers);
+    const rateCheck = feedbackLimiter.check(clientIp);
+
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please slow down.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateCheck.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const validation = validateFeedbackPayload(body);
 
@@ -56,6 +82,7 @@ export async function POST(request: Request) {
     }
 
     const { eventId, type, reason, comment } = body;
+    const sanitizedComment = comment ? sanitizeText(comment, 500) : null;
 
     // Check if event exists
     const event = await prisma.event.findUnique({
@@ -104,7 +131,7 @@ export async function POST(request: Request) {
           eventId,
           type: 'report_inaccurate',
           reason,
-          comment: comment?.trim() || null,
+          comment: sanitizedComment,
         }
       });
 

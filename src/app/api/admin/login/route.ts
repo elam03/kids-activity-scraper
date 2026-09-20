@@ -1,17 +1,39 @@
 import { NextResponse } from 'next/server';
+import {
+  getClientIp,
+  loginLimiter,
+  timingSafeCompare,
+  createSignedSessionToken,
+} from '@/lib/security-utils';
 
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request.headers);
+    const rateCheck = loginLimiter.check(clientIp);
+
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Too many login attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateCheck.resetTime - Date.now()) / 1000).toString(),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const { password } = body;
 
     const expectedPassword = process.env.ADMIN_PASSWORD || 'fr33SCRAPER';
 
-    if (password === expectedPassword) {
+    if (timingSafeCompare(password || '', expectedPassword)) {
       const response = NextResponse.json({ success: true });
-      
+      const sessionToken = await createSignedSessionToken();
+
       // Set HTTP-only session cookie expiring in 7 days
-      response.cookies.set('admin-session', 'authenticated', {
+      response.cookies.set('admin-session', sessionToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -33,3 +55,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

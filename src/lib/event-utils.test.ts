@@ -277,6 +277,8 @@ test('getSecurityHeaders returns HSTS, nosniff, and anti-clickjacking headers', 
   assert.equal(headerMap['X-Content-Type-Options'], 'nosniff');
   assert.equal(headerMap['X-Frame-Options'], 'SAMEORIGIN');
   assert.equal(headerMap['Referrer-Policy'], 'strict-origin-when-cross-origin');
+  assert.equal(headerMap['Permissions-Policy'], 'camera=(), microphone=(), geolocation=(self)');
+  assert.equal(headerMap['X-XSS-Protection'], '1; mode=block');
 });
 
 

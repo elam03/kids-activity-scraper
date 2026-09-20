@@ -224,5 +224,13 @@ export function getSecurityHeaders(): Array<{ key: string; value: string }> {
       key: 'Referrer-Policy',
       value: 'strict-origin-when-cross-origin',
     },
+    {
+      key: 'Permissions-Policy',
+      value: 'camera=(), microphone=(), geolocation=(self)',
+    },
+    {
+      key: 'X-XSS-Protection',
+      value: '1; mode=block',
+    },
   ];
 }
