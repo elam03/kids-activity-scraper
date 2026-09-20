@@ -8,6 +8,7 @@ import {
   SITE_NAME,
   SITE_DESCRIPTION,
   buildWebSiteJsonLd,
+  getSiteIcons,
 } from '@/lib/seo-utils';
 
 const outfit = Outfit({ subsets: ['latin'] });
@@ -19,6 +20,8 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  icons: getSiteIcons(),
+  manifest: '/manifest.webmanifest',
   keywords: [
     'kids activities bay area',
     'family events sf',

@@ -6,6 +6,7 @@ import {
   getSiteUrl,
   buildWebSiteJsonLd,
   buildEventJsonLd,
+  getSiteIcons,
   type SeoEvent,
 } from './seo-utils';
 
@@ -73,3 +74,14 @@ test('buildEventJsonLd handles all-day or missing time gracefully', () => {
   assert.equal(jsonLd.isAccessibleForFree, false);
   assert.equal(jsonLd.location?.name, 'San Francisco Bay Area');
 });
+
+test('getSiteIcons returns standard favicon, svg, and apple touch icons', () => {
+  const icons = getSiteIcons();
+  assert.ok(Array.isArray(icons.icon));
+  assert.ok(icons.icon.some((i) => i.url === '/favicon.ico'));
+  assert.ok(icons.icon.some((i) => i.url === '/icon.svg' && i.type === 'image/svg+xml'));
+  assert.ok(icons.icon.some((i) => i.url === '/icon.png'));
+  assert.ok(Array.isArray(icons.apple));
+  assert.ok(icons.apple.some((i) => i.url === '/apple-icon.png'));
+});
+
