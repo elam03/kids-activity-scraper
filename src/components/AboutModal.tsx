@@ -7,6 +7,7 @@ import {
   buildFeedbackMailtoUrl,
   getAboutContent,
 } from '@/lib/about-utils';
+import { useBodyScrollLock } from '@/lib/modal-scroll-lock';
 
 export interface AboutModalProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ export default function AboutModal({
 }: AboutModalProps) {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const content = getAboutContent();
+
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,7 +53,7 @@ export default function AboutModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto overscroll-contain"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -59,7 +62,7 @@ export default function AboutModal({
       aria-labelledby="about-modal-title"
     >
       <div
-        className={`w-full max-w-xl rounded-2xl border p-5 sm:p-7 shadow-2xl transition-all my-auto max-h-[90vh] overflow-y-auto custom-scrollbar ${activeTheme.modal || 'bg-slate-900 border-slate-800 text-slate-100'}`}
+        className={`w-full max-w-xl rounded-2xl border p-5 sm:p-7 shadow-2xl transition-all my-auto max-h-[90vh] overflow-y-auto overscroll-contain custom-scrollbar ${activeTheme.modal || 'bg-slate-900 border-slate-800 text-slate-100'}`}
       >
         {/* Header */}
         <div className="flex justify-between items-start pb-4 mb-4 border-b border-slate-200/10">

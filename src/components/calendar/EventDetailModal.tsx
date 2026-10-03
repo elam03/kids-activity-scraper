@@ -3,6 +3,7 @@
 import dynamicNext from 'next/dynamic';
 import EventFeedbackButtons from '@/components/EventFeedbackButtons';
 import type { CalendarEvent } from '@/lib/calendar-query';
+import { useBodyScrollLock } from '@/lib/modal-scroll-lock';
 
 const EventMiniMap = dynamicNext(() => import('@/components/EventMiniMap'), {
   ssr: false,
@@ -25,15 +26,17 @@ export default function EventDetailModal({
   onClose,
   onBackToDay,
 }: EventDetailModalProps) {
+  useBodyScrollLock();
+
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4 overscroll-contain"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`w-full max-w-xl rounded-2xl border p-4 sm:p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[90vh] flex flex-col overflow-hidden`}
+        className={`w-full max-w-xl rounded-2xl border p-4 sm:p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[90vh] flex flex-col overflow-hidden overscroll-contain`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -66,7 +69,7 @@ export default function EventDetailModal({
           <h3 className={`text-lg sm:text-xl font-bold ${activeTheme.modalTitle}`}>{event.title}</h3>
         </div>
 
-        <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-xs my-3 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto overscroll-contain pr-1 space-y-4 text-xs my-3 custom-scrollbar">
           <div className={`grid grid-cols-2 gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border ${activeTheme.modalInner}`}>
             <div>
               <div className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">When</div>

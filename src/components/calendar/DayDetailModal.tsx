@@ -1,6 +1,7 @@
 'use client';
 
 import type { CalendarEvent } from '@/lib/calendar-query';
+import { useBodyScrollLock } from '@/lib/modal-scroll-lock';
 
 export interface DayDetailModalProps {
   date: Date;
@@ -30,6 +31,8 @@ export default function DayDetailModal({
   onClose,
   onSelectEvent,
 }: DayDetailModalProps) {
+  useBodyScrollLock();
+
   const allDay = events.filter((e) => e.startTime === null);
   const morning = events.filter((e) => {
     const h = parseHour(e.startTime);
@@ -53,13 +56,13 @@ export default function DayDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4 overscroll-contain"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className={`w-full max-w-lg rounded-2xl border p-4 sm:p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[88vh] sm:max-h-[85vh] flex flex-col`}
+        className={`w-full max-w-lg rounded-2xl border p-4 sm:p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden overscroll-contain`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -86,7 +89,7 @@ export default function DayDetailModal({
         </div>
 
         {/* Scrollable Content: Time Slots */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto overscroll-contain space-y-4 pr-1 custom-scrollbar">
           {events.length === 0 ? (
             <div className="py-12 text-center text-xs text-slate-500 italic">
               No activities scheduled for this day.
