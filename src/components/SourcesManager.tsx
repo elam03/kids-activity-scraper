@@ -411,26 +411,29 @@ export default function SourcesManager({ activeTheme }: SourcesManagerProps) {
         </div>
 
         {/* Right Side: Ingestion Orchestrator */}
-        <div className="space-y-8">
-          <div className={`rounded-2xl border p-6 shadow-md flex flex-col h-full ${activeTheme.card}`}>
-            <h2 className={`text-lg font-semibold mb-2 ${activeTheme.textHeading}`}>Ingestion Runner</h2>
-            <p className={`text-xs ${activeTheme.textMuted} mb-6`}>
-              Manually trigger a scrape across all sources. Auto-scraping runs every 6 hours via Railway Cron — each source is only scraped when its adaptive interval has elapsed.
+        <div className="space-y-5">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-md ${activeTheme.card}`}>
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <h2 className={`text-base font-semibold ${activeTheme.textHeading}`}>Ingestion Runner</h2>
+              <span className="text-[10px] text-slate-500 font-mono">Cron: 6h</span>
+            </div>
+            <p className={`text-xs ${activeTheme.textMuted} mb-3.5 leading-relaxed`}>
+              Manually trigger a scrape across all sources. Auto-scraping runs every 6 hours via Railway Cron when adaptive intervals elapse.
             </p>
 
             <button
               onClick={triggerIngest}
               disabled={ingesting || sources.length === 0}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-sm font-semibold text-white shadow-lg shadow-violet-500/10 hover:from-violet-500 hover:to-indigo-500 transition active:scale-[0.98] disabled:opacity-40"
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-semibold text-white shadow-md shadow-violet-500/10 hover:from-violet-500 hover:to-indigo-500 transition active:scale-[0.98] disabled:opacity-40"
             >
               {ingesting ? 'Running pipeline...' : 'Trigger Manual Scrape'}
             </button>
 
             {/* Live Progress Logs */}
             {statusLog && (
-              <div className="mt-6 flex-1 flex flex-col">
-                <h4 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Pipeline Output</h4>
-                <pre className={`flex-1 w-full p-4 rounded-xl font-mono text-[10px] leading-relaxed overflow-auto whitespace-pre-wrap max-h-60 ${activeTheme.cardAlt}`}>
+              <div className="mt-4 flex flex-col">
+                <h4 className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Pipeline Output</h4>
+                <pre className={`w-full p-3 rounded-xl font-mono text-[10px] leading-relaxed overflow-auto whitespace-pre-wrap max-h-44 ${activeTheme.cardAlt}`}>
                   {statusLog}
                 </pre>
               </div>
@@ -438,16 +441,16 @@ export default function SourcesManager({ activeTheme }: SourcesManagerProps) {
 
             {/* Ingestion Report Table */}
             {report && (
-              <div className={`mt-6 border-t ${activeTheme.border} pt-6`}>
-                <h4 className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wider">Scrape Summary</h4>
-                <div className="space-y-3">
+              <div className={`mt-4 border-t ${activeTheme.border} pt-4`}>
+                <h4 className="text-[10px] font-semibold text-slate-500 mb-2 uppercase tracking-wider">Scrape Summary</h4>
+                <div className="space-y-2">
                   {report.map((rep, idx) => (
-                    <div key={idx} className={`flex justify-between items-center p-3 rounded-xl border text-xs ${activeTheme.cardAlt}`}>
+                    <div key={idx} className={`flex justify-between items-center p-2.5 rounded-xl border text-xs ${activeTheme.cardAlt}`}>
                       <div>
                         <div className="font-semibold text-violet-400">@{rep.source}</div>
-                        {rep.error && <div className="text-[10px] text-red-400 mt-1">{rep.error}</div>}
+                        {rep.error && <div className="text-[10px] text-red-400 mt-0.5">{rep.error}</div>}
                       </div>
-                      <div className="text-right flex gap-3 text-[10px] text-slate-500">
+                      <div className="text-right flex gap-2.5 text-[10px] text-slate-500">
                         <div>Scraped: <span className={`font-bold ${activeTheme.textHeading}`}>{rep.scrapedCount}</span></div>
                         <div>Parsed: <span className="font-bold text-emerald-500">{rep.processedCount}</span></div>
                         <div>Dupes: <span className="font-bold text-slate-500">{rep.skippedCount}</span></div>
@@ -461,7 +464,7 @@ export default function SourcesManager({ activeTheme }: SourcesManagerProps) {
 
           {/* Apify Billing & Quota Widget */}
           {apifyBilling && (
-            <div className={`rounded-2xl border p-6 shadow-md ${activeTheme.card}`}>
+            <div className={`rounded-2xl border p-4 sm:p-5 shadow-md ${activeTheme.card}`}>
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                 <h3 className={`text-sm font-semibold ${activeTheme.textHeading}`}>Apify API Usage & Quota</h3>
