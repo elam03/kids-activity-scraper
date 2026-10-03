@@ -7,10 +7,12 @@ import type { LLMExtractor, ExtractionResult } from './llm-extractor';
 function createMockPrisma() {
   const events: any[] = [];
   const submissions: any[] = [];
+  const eventSources: any[] = [];
 
   return {
     events,
     submissions,
+    eventSources,
     urlSubmission: {
       findUnique: async ({ where }: { where: { id: string } }) => {
         return submissions.find((s) => s.id === where.id) || null;
@@ -29,6 +31,21 @@ function createMockPrisma() {
     event: {
       findFirst: async ({ where }: { where: { rawPostUrl: string } }) => {
         return events.find((e) => e.rawPostUrl === where.rawPostUrl) || null;
+      },
+      findMany: async ({ where }: any = {}) => {
+        return events.filter((e) => {
+          if (where?.startDate && e.startDate !== where.startDate) return false;
+          if (where?.status?.not && e.status === where.status.not) return false;
+          return true;
+        });
+      },
+      update: async ({ where, data }: { where: { id: string }; data: any }) => {
+        const ev = events.find((e) => e.id === where.id);
+        if (ev) {
+          Object.assign(ev, data);
+          return ev;
+        }
+        return null;
       },
       upsert: async ({ where, update, create }: any) => {
         const existingIndex = events.findIndex(
@@ -51,6 +68,31 @@ function createMockPrisma() {
           events.push(newRecord);
           return newRecord;
         }
+      },
+    },
+    eventSource: {
+      findFirst: async ({ where }: any) => {
+        return eventSources.find((es) => es.rawPostUrl === where.rawPostUrl) || null;
+      },
+      upsert: async ({ where, update, create }: any) => {
+        const idx = eventSources.findIndex(
+          (es) =>
+            es.eventId === where.eventId_rawPostUrl.eventId &&
+            es.rawPostUrl === where.eventId_rawPostUrl.rawPostUrl
+        );
+        if (idx >= 0) {
+          eventSources[idx] = { ...eventSources[idx], ...update };
+          return eventSources[idx];
+        } else {
+          const newEs = { id: `es_${eventSources.length + 1}`, ...create };
+          eventSources.push(newEs);
+          return newEs;
+        }
+      },
+      create: async ({ data }: any) => {
+        const newEs = { id: `es_${eventSources.length + 1}`, ...data };
+        eventSources.push(newEs);
+        return newEs;
       },
     },
   };
@@ -456,3 +498,218 @@ test('ingestEvent uses Gate 4 to triage events to pending when venue is missing 
   const saved = mockDb.events[0];
   assert.equal(saved.status, 'pending', 'Event with missing location should be set to pending for review');
 });
+
+test('ingestEvent records primary EventSource on initial creation and merges cross-source duplicate without duplicate Event', async () => {
+  const mockDb = createMockPrisma();
+
+  // Ingest Source 1 (Instagram)
+  const extractor1: LLMExtractor = {
+    extractEvents: async () => ({
+      isEvent: true,
+      confidence: 0.95,
+      events: [
+        {
+          title: 'Annual Pumpkin Patch & Harvest Festival',
+          startDate: '2026-10-25',
+          location: 'Alameda County Fairgrounds',
+          category: 'festival',
+          isFree: false,
+          description: 'Fun festival',
+        },
+      ],
+    }),
+  };
+
+  const geocoder = async () => ({ lat: 37.6604, lng: -121.8758 });
+
+  const result1 = await ingestEvent(
+    'src_instagram',
+    {
+      postUrl: 'https://instagram.com/p/harvest123',
+      caption: 'Come out to the harvest festival!',
+    },
+    {
+      db: mockDb as any,
+      extractor: extractor1,
+      geocode: geocoder,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(result1.savedCount, 1);
+  assert.equal(mockDb.events.length, 1);
+  assert.equal(mockDb.eventSources.length, 1);
+  assert.equal(mockDb.eventSources[0].isPrimary, true);
+  assert.equal(mockDb.eventSources[0].rawPostUrl, 'https://instagram.com/p/harvest123');
+  assert.equal(mockDb.events[0].startTime, null);
+
+  // Ingest Source 2 (Web Submission / Eventbrite) with matching date & title but enriched metadata
+  const extractor2: LLMExtractor = {
+    extractEvents: async () => ({
+      isEvent: true,
+      confidence: 0.95,
+      events: [
+        {
+          title: 'Pumpkin Patch & Harvest Festival in Pleasanton',
+          startDate: '2026-10-25',
+          startTime: '10:00',
+          endTime: '16:00',
+          location: 'Alameda County Fairgrounds, 4501 Pleasanton Ave, Pleasanton',
+          category: 'festival',
+          isFree: false,
+          cost: '$15',
+          registrationUrl: 'https://eventbrite.com/e/harvest-festival-pleasanton',
+          description: 'Enriched web listing',
+        },
+      ],
+    }),
+  };
+
+  const result2 = await ingestEvent(
+    'src_web',
+    {
+      postUrl: 'https://eventbrite.com/e/harvest-festival-pleasanton',
+      caption: 'Register for tickets',
+      submissionId: 'sub_eventbrite_456',
+    },
+    {
+      db: mockDb as any,
+      extractor: extractor2,
+      geocode: geocoder,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(result2.savedCount, 1);
+  // Must NOT create a duplicate event row in db.events
+  assert.equal(mockDb.events.length, 1, 'Duplicate event must be merged instead of creating a second row');
+
+  // Must have 2 EventSource records (1 primary from Instagram, 1 secondary from Eventbrite)
+  assert.equal(mockDb.eventSources.length, 2);
+  const secondarySource = mockDb.eventSources.find((es) => !es.isPrimary);
+  assert.ok(secondarySource, 'Secondary EventSource must be created');
+  assert.equal(secondarySource.rawPostUrl, 'https://eventbrite.com/e/harvest-festival-pleasanton');
+  assert.equal(secondarySource.sourceId, 'src_web');
+  assert.equal(secondarySource.submissionId, 'sub_eventbrite_456');
+
+  // Canonical event must be non-destructively patched with missing fields
+  const canonical = mockDb.events[0];
+  assert.equal(canonical.startTime, '10:00');
+  assert.equal(canonical.endTime, '16:00');
+  assert.equal(canonical.cost, '$15');
+  assert.equal(canonical.registrationUrl, 'https://eventbrite.com/e/harvest-festival-pleasanton');
+  assert.equal(canonical.location, 'Alameda County Fairgrounds, 4501 Pleasanton Ave, Pleasanton');
+});
+
+test('ingestEvent uses Gate 5 for borderline ambiguity and respects triage decision', async () => {
+  const mockDb = createMockPrisma();
+
+  // Seed existing event
+  mockDb.events.push({
+    id: 'evt_robotics_1',
+    title: 'Family Robotics Workshop',
+    startDate: '2026-11-01',
+    location: 'San Mateo Event Center',
+    status: 'approved',
+    confidence: 0.9,
+  });
+
+  let gate5Called = false;
+  const mockJevClient = {
+    filterContentHasEvents: async () => ({ hasEvents: true, confidence: 1.0 }),
+    triageExtractedEvent: async () => ({ status: 'approved' as const, confidence: 0.9 }),
+    triageDuplicateCandidate: async () => {
+      gate5Called = true;
+      return { isDuplicate: true, confidence: 0.92, reason: 'Same robotics event' };
+    },
+  };
+
+  const mockExtractor: LLMExtractor = {
+    extractEvents: async () => ({
+      isEvent: true,
+      confidence: 0.9,
+      events: [
+        {
+          title: 'Kids Robotics Workshop', // Borderline similarity (0.6375)
+          startDate: '2026-11-01',
+          location: 'San Mateo Expo Hall',
+          category: 'education',
+          isFree: false,
+          description: 'Robotics and coding projects',
+        },
+      ],
+    }),
+  };
+
+  await ingestEvent(
+    'src_maker',
+    {
+      postUrl: 'https://makerfaire.com/san-mateo',
+      caption: 'Tickets on sale now',
+    },
+    {
+      db: mockDb as any,
+      extractor: mockExtractor,
+      jevClient: mockJevClient as any,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(gate5Called, true, 'Gate 5 triage should be invoked for borderline duplicate candidates');
+  assert.equal(mockDb.events.length, 1, 'Borderline duplicate confirmed by Gate 5 should be merged');
+  assert.equal(mockDb.eventSources.length, 1);
+  assert.equal(mockDb.eventSources[0].isPrimary, false);
+});
+
+test('ingestEvent does NOT merge events with identical titles on same date if locations are far apart', async () => {
+  const mockDb = createMockPrisma();
+
+  // Seed San Francisco Storytime
+  mockDb.events.push({
+    id: 'evt_sf_story',
+    title: 'Toddler Storytime',
+    startDate: '2026-10-15',
+    location: 'San Francisco Public Library',
+    latitude: 37.7793,
+    longitude: -122.4160,
+    status: 'approved',
+  });
+
+  // Incoming San Jose Storytime with identical title on same date
+  const mockExtractor: LLMExtractor = {
+    extractEvents: async () => ({
+      isEvent: true,
+      confidence: 0.95,
+      events: [
+        {
+          title: 'Toddler Storytime',
+          startDate: '2026-10-15',
+          location: 'Dr. Martin Luther King, Jr. Library, San Jose',
+          category: 'education',
+          isFree: true,
+          description: 'Weekly storytime in San Jose',
+        },
+      ],
+    }),
+  };
+
+  const geocoder = async () => ({ lat: 37.3355, lng: -121.8847 }); // > 40 miles away
+
+  const result = await ingestEvent(
+    'src_sj_library',
+    {
+      postUrl: 'https://sjlibrary.org/storytime',
+      caption: 'Storytime at MLK library',
+    },
+    {
+      db: mockDb as any,
+      extractor: mockExtractor,
+      geocode: geocoder,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(result.savedCount, 1);
+  assert.equal(mockDb.events.length, 2, 'Events > 5 miles apart should not be merged even with identical titles');
+});
+

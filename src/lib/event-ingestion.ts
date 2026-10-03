@@ -7,6 +7,12 @@ import {
   type ExtractionResult,
 } from './llm-extractor';
 import { JevClient } from './jev';
+import {
+  findDuplicateEvent,
+  mergeEventMetadata,
+  computeTitleSimilarity,
+  type EventCandidate,
+} from './event-deduplication';
 
 export interface IngestEventPayload {
   postUrl: string;
@@ -101,11 +107,15 @@ export async function ingestEvent(
     where: { rawPostUrl: payload.postUrl },
   });
 
-  if (existingEvent) {
+  const existingSource = db.eventSource?.findFirst
+    ? await db.eventSource.findFirst({ where: { rawPostUrl: payload.postUrl } })
+    : null;
+
+  if (existingEvent || existingSource) {
     return {
       rawPostUrl: payload.postUrl,
-      isEvent: existingEvent.status !== 'rejected',
-      confidence: existingEvent.confidence || 1.0,
+      isEvent: existingEvent ? existingEvent.status !== 'rejected' : true,
+      confidence: existingEvent?.confidence || 1.0,
       events: [],
       savedCount: 0,
       skipped: true,
@@ -235,7 +245,124 @@ export async function ingestEvent(
         ? { submission: { connect: { id: payload.submissionId } } }
         : {};
 
-      await db.event.upsert({
+      // Tier 1: Deterministic cross-source deduplication check
+      let existingCandidates: any[] = [];
+      if (db.event.findMany) {
+        try {
+          existingCandidates = await db.event.findMany({
+            where: {
+              startDate: eventStartDate,
+              status: { not: 'rejected' },
+            },
+          });
+        } catch {
+          // Fallback if findMany not supported or errors
+        }
+      }
+
+      const incomingCandidate: EventCandidate = {
+        title: rawEvent.title,
+        startDate: eventStartDate,
+        endDate: rawEvent.endDate || null,
+        startTime: rawEvent.startTime || null,
+        endTime: rawEvent.endTime || null,
+        location: rawEvent.location || null,
+        latitude: coords?.lat ?? null,
+        longitude: coords?.lng ?? null,
+        registrationUrl: rawEvent.registrationUrl || null,
+        cost: rawEvent.cost || null,
+      };
+
+      let duplicateMatch = findDuplicateEvent(existingCandidates, incomingCandidate);
+
+      // Tier 2: Gate 5 LLM Triage for borderline ambiguity (0.55 <= similarity < 0.75)
+      if (!duplicateMatch && existingCandidates.length > 0) {
+        for (const candidate of existingCandidates) {
+          if (candidate.startDate === eventStartDate) {
+            const sim = computeTitleSimilarity(candidate.title, rawEvent.title);
+            if (sim >= 0.55 && sim < 0.75) {
+              const triage = await jev.triageDuplicateCandidate(
+                { title: candidate.title, startDate: candidate.startDate, location: candidate.location },
+                { title: rawEvent.title, startDate: eventStartDate, location: rawEvent.location }
+              );
+              if (triage.isDuplicate) {
+                duplicateMatch = {
+                  candidate,
+                  confidence: triage.confidence,
+                  patch: mergeEventMetadata(candidate, incomingCandidate),
+                };
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // If duplicate found across sources: non-destructively patch and attach secondary EventSource
+      if (duplicateMatch && duplicateMatch.candidate.id) {
+        const matchedEventId = duplicateMatch.candidate.id;
+
+        if (duplicateMatch.patch && Object.keys(duplicateMatch.patch).length > 0 && db.event.update) {
+          try {
+            await db.event.update({
+              where: { id: matchedEventId },
+              data: duplicateMatch.patch,
+            });
+          } catch (err) {
+            console.error(`Failed to patch canonical event ${matchedEventId}:`, err);
+          }
+        }
+
+        // Attach secondary EventSource
+        if (db.eventSource?.upsert) {
+          try {
+            await db.eventSource.upsert({
+              where: {
+                eventId_rawPostUrl: {
+                  eventId: matchedEventId,
+                  rawPostUrl: payload.postUrl,
+                },
+              },
+              update: {
+                sourceId,
+                submissionId: payload.submissionId || null,
+                rawCaption: payload.caption || null,
+              },
+              create: {
+                eventId: matchedEventId,
+                sourceId,
+                submissionId: payload.submissionId || null,
+                rawPostUrl: payload.postUrl,
+                rawCaption: payload.caption || null,
+                isPrimary: false,
+              },
+            });
+          } catch (err) {
+            console.error(`Failed to upsert secondary EventSource:`, err);
+          }
+        } else if (db.eventSource?.create) {
+          try {
+            await db.eventSource.create({
+              data: {
+                eventId: matchedEventId,
+                sourceId,
+                submissionId: payload.submissionId || null,
+                rawPostUrl: payload.postUrl,
+                rawCaption: payload.caption || null,
+                isPrimary: false,
+              },
+            });
+          } catch (err) {
+            console.error(`Failed to create secondary EventSource:`, err);
+          }
+        }
+
+        savedCount++;
+        continue;
+      }
+
+      // No duplicate: insert canonical primary event
+      const savedEvent = await db.event.upsert({
         where: {
           rawPostUrl_title: {
             rawPostUrl: payload.postUrl,
@@ -283,6 +410,50 @@ export async function ingestEvent(
           ...submissionConnect,
         },
       });
+
+      // Record primary EventSource
+      if (savedEvent?.id && db.eventSource?.upsert) {
+        try {
+          await db.eventSource.upsert({
+            where: {
+              eventId_rawPostUrl: {
+                eventId: savedEvent.id,
+                rawPostUrl: payload.postUrl,
+              },
+            },
+            update: {
+              sourceId,
+              submissionId: payload.submissionId || null,
+              rawCaption: payload.caption || null,
+            },
+            create: {
+              eventId: savedEvent.id,
+              sourceId,
+              submissionId: payload.submissionId || null,
+              rawPostUrl: payload.postUrl,
+              rawCaption: payload.caption || null,
+              isPrimary: true,
+            },
+          });
+        } catch (err) {
+          console.error(`Failed to upsert primary EventSource:`, err);
+        }
+      } else if (savedEvent?.id && db.eventSource?.create) {
+        try {
+          await db.eventSource.create({
+            data: {
+              eventId: savedEvent.id,
+              sourceId,
+              submissionId: payload.submissionId || null,
+              rawPostUrl: payload.postUrl,
+              rawCaption: payload.caption || null,
+              isPrimary: true,
+            },
+          });
+        } catch (err) {
+          console.error(`Failed to create primary EventSource:`, err);
+        }
+      }
 
       savedCount++;
     }

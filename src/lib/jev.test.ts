@@ -5,6 +5,7 @@ import {
   heuristicRouteScraper,
   heuristicFilterContentHasEvents,
   heuristicTriageExtractedEvent,
+  heuristicDeduplicateEvents,
   JevClient,
 } from './jev';
 import type { ExtractedEvent } from './llm-extractor';
@@ -177,3 +178,74 @@ test('JevClient calls OpenRouter API when key is configured', async () => {
   assert.equal(res.isRelevant, true);
   assert.equal(res.reason, 'Family activity website in Bay Area');
 });
+
+test('Gate 5: heuristicDeduplicateEvents identifies identical and distinct events', () => {
+  const event1 = {
+    title: 'Pumpkin Patch & Harvest Festival',
+    startDate: '2026-10-25',
+    location: 'Alameda County Fairgrounds',
+  };
+  const event2 = {
+    title: 'Annual Harvest Festival and Pumpkin Patch',
+    startDate: '2026-10-25',
+    location: 'Alameda Fairgrounds, Pleasanton',
+  };
+  const matchResult = heuristicDeduplicateEvents(event1, event2);
+  assert.equal(matchResult.isDuplicate, true);
+  assert.ok(matchResult.confidence >= 0.75);
+
+  // Different date
+  const differentDateResult = heuristicDeduplicateEvents(event1, {
+    ...event2,
+    startDate: '2026-10-26',
+  });
+  assert.equal(differentDateResult.isDuplicate, false);
+  assert.equal(differentDateResult.reason, 'different_start_date');
+
+  // Completely different event on same date
+  const distinctResult = heuristicDeduplicateEvents(event1, {
+    title: 'Youth Coding & Robotics Workshop',
+    startDate: '2026-10-25',
+    location: 'Palo Alto Library',
+  });
+  assert.equal(distinctResult.isDuplicate, false);
+});
+
+test('JevClient.triageDuplicateCandidate calls OpenRouter when key is set', async () => {
+  let calledPrompt = '';
+  const mockFetch = (async (url: string, init?: RequestInit) => {
+    const body = JSON.parse(init?.body as string);
+    calledPrompt = body.messages[0].content;
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: JSON.stringify({
+                isDuplicate: true,
+                confidence: 0.96,
+                reason: 'Same event reported from two different community boards',
+              }),
+            },
+          },
+        ],
+      }),
+    } as any;
+  }) as typeof fetch;
+
+  const client = new JevClient({
+    apiKey: 'test-api-key',
+    fetcher: mockFetch,
+  });
+
+  const res = await client.triageDuplicateCandidate(
+    { title: 'Maker Faire', startDate: '2026-11-01', location: 'San Mateo Expo' },
+    { title: 'Bay Area Maker Faire', startDate: '2026-11-01', location: 'San Mateo Event Center' }
+  );
+
+  assert.equal(res.isDuplicate, true);
+  assert.equal(res.confidence, 0.96);
+  assert.ok(calledPrompt.includes('Maker Faire'));
+});
+

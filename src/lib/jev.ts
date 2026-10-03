@@ -1,4 +1,5 @@
 import type { ExtractedEvent } from './llm-extractor';
+import { computeTitleSimilarity } from './event-deduplication';
 
 export interface JevGate1Result {
   isRelevant: boolean;
@@ -18,6 +19,12 @@ export interface JevGate3Result {
 
 export interface JevGate4Result {
   status: 'approved' | 'pending';
+  confidence: number;
+  reason?: string;
+}
+
+export interface JevGate5Result {
+  isDuplicate: boolean;
   confidence: number;
   reason?: string;
 }
@@ -213,6 +220,36 @@ export function heuristicTriageExtractedEvent(event: ExtractedEvent): JevGate4Re
   };
 }
 
+/**
+ * Gate 5 Deterministic Fallback: Deduplicate two events based on date, title, and venue.
+ */
+export function heuristicDeduplicateEvents(
+  eventA: { title: string; startDate: string; location?: string | null },
+  eventB: { title: string; startDate: string; location?: string | null }
+): JevGate5Result {
+  if (eventA.startDate !== eventB.startDate) {
+    return { isDuplicate: false, confidence: 0, reason: 'different_start_date' };
+  }
+
+  const sim = computeTitleSimilarity(eventA.title, eventB.title);
+  let finalConfidence = sim;
+
+  if (eventA.location && eventB.location) {
+    const locA = eventA.location.toLowerCase();
+    const locB = eventB.location.toLowerCase();
+    if (locA.includes(locB) || locB.includes(locA)) {
+      finalConfidence = Math.min(1.0, finalConfidence + 0.08);
+    }
+  }
+
+  const isDuplicate = finalConfidence >= 0.75;
+  return {
+    isDuplicate,
+    confidence: Number(finalConfidence.toFixed(3)),
+    reason: isDuplicate ? 'high_similarity' : 'distinct_events',
+  };
+}
+
 export interface JevClientOptions {
   apiKey?: string;
   model?: string;
@@ -399,4 +436,46 @@ Respond strictly with JSON: {"status": "approved"|"pending", "confidence": numbe
 
     return fallback;
   }
+
+  async triageDuplicateCandidate(
+    eventA: { title: string; startDate: string; location?: string | null },
+    eventB: { title: string; startDate: string; location?: string | null }
+  ): Promise<JevGate5Result> {
+    const fallback = heuristicDeduplicateEvents(eventA, eventB);
+    if (!this.apiKey) {
+      return fallback;
+    }
+
+    const prompt = `Determine whether these two event listings are describing the exact same event/activity:
+Event 1:
+Title: ${eventA.title}
+Date: ${eventA.startDate}
+Location: ${eventA.location || 'none'}
+
+Event 2:
+Title: ${eventB.title}
+Date: ${eventB.startDate}
+Location: ${eventB.location || 'none'}
+
+Respond strictly with JSON: {"isDuplicate": boolean, "confidence": number, "reason": string}`;
+
+    const raw = await this.callOpenRouter(prompt);
+    if (!raw) return fallback;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.isDuplicate === 'boolean') {
+        return {
+          isDuplicate: parsed.isDuplicate,
+          confidence: typeof parsed.confidence === 'number' ? parsed.confidence : fallback.confidence,
+          reason: typeof parsed.reason === 'string' ? parsed.reason : undefined,
+        };
+      }
+    } catch {
+      // Fallback
+    }
+
+    return fallback;
+  }
 }
+
