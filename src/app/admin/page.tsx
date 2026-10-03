@@ -5,6 +5,7 @@ import Link from 'next/link';
 import FlyerUpload from '@/components/FlyerUpload';
 import EventsManager from '@/components/EventsManager';
 import SourcesManager from '@/components/SourcesManager';
+import UrlIngestionManager from '@/components/UrlIngestionManager';
 import {
   DEFAULT_CALENDAR_THEME,
   resolveCalendarTheme,
@@ -111,7 +112,7 @@ const themeClasses: Record<string, any> = {
 };
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'sources' | 'upload' | 'events'>('sources');
+  const [activeTab, setActiveTab] = useState<'sources' | 'url_ingestion' | 'upload' | 'events'>('sources');
   const [theme, setTheme] = useState<CalendarThemeName>(DEFAULT_CALENDAR_THEME);
   const [pendingCount, setPendingCount] = useState<number>(0);
 
@@ -208,6 +209,14 @@ export default function AdminDashboard() {
             Sources & Ingestion
           </button>
           <button
+            onClick={() => setActiveTab('url_ingestion')}
+            className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap ${
+              activeTab === 'url_ingestion' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
+            }`}
+          >
+            URL Ingestion
+          </button>
+          <button
             onClick={() => setActiveTab('upload')}
             className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap ${
               activeTab === 'upload' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
@@ -233,6 +242,9 @@ export default function AdminDashboard() {
 
       <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 pb-12">
         {activeTab === 'sources' && <SourcesManager activeTheme={activeTheme} />}
+        {activeTab === 'url_ingestion' && (
+          <UrlIngestionManager activeTheme={activeTheme} onRefreshNeeded={fetchPendingCount} />
+        )}
         {activeTab === 'upload' && <FlyerUpload onSuccess={() => {}} activeTheme={activeTheme} />}
         {activeTab === 'events' && <EventsManager activeTheme={activeTheme} onRefreshNeeded={fetchPendingCount} />}
       </main>

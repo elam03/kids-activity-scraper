@@ -6,9 +6,26 @@ import type { LLMExtractor, ExtractionResult } from './llm-extractor';
 // In-memory mock Prisma client for testing ingestion persistence without postgres
 function createMockPrisma() {
   const events: any[] = [];
+  const submissions: any[] = [];
 
   return {
     events,
+    submissions,
+    urlSubmission: {
+      findUnique: async ({ where }: { where: { id: string } }) => {
+        return submissions.find((s) => s.id === where.id) || null;
+      },
+      update: async ({ where, data }: { where: { id: string }; data: any }) => {
+        let sub = submissions.find((s) => s.id === where.id);
+        if (!sub) {
+          sub = { id: where.id, ...data };
+          submissions.push(sub);
+        } else {
+          Object.assign(sub, data);
+        }
+        return sub;
+      },
+    },
     event: {
       findFirst: async ({ where }: { where: { rawPostUrl: string } }) => {
         return events.find((e) => e.rawPostUrl === where.rawPostUrl) || null;
@@ -27,8 +44,10 @@ function createMockPrisma() {
             id: `evt_${events.length + 1}`,
             ...create,
             sourceId: create.source?.connect?.id,
+            submissionId: create.submission?.connect?.id || null,
           };
           delete newRecord.source;
+          delete newRecord.submission;
           events.push(newRecord);
           return newRecord;
         }
@@ -270,4 +289,170 @@ test('ingestEvent downloads child post slide images up to limit for sidecar post
   assert.equal(downloadedUrls.length, 10);
   assert.equal(extractedImages.length, 10);
   assert.equal(extractedImages[0], 'data:image/webp;base64,data_https://cdn.instagram.com/slide_0.jpg');
+});
+
+test('ingestEvent supports pre-extracted events (Tier 1 JSON-LD) without calling LLM extractor', async () => {
+  const mockDb = createMockPrisma();
+  let extractorCalled = false;
+  const mockExtractor: LLMExtractor = {
+    extractEvents: async () => {
+      extractorCalled = true;
+      return { isEvent: true, confidence: 1.0, events: [] };
+    },
+  };
+
+  const preExtracted = [
+    {
+      title: 'Pre-Extracted Storytime',
+      startDate: '2026-10-15',
+      location: 'Main Library, Berkeley',
+      category: 'education' as const,
+      isFree: true,
+      description: 'Pre-extracted via JSON-LD',
+    },
+  ];
+
+  const result = await ingestEvent(
+    'source_1',
+    {
+      postUrl: 'https://library.org/storytime',
+      extractedEvents: preExtracted,
+    },
+    {
+      db: mockDb as any,
+      extractor: mockExtractor,
+      geocode: async () => null,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(extractorCalled, false, 'LLM extractor must not be called when events are already extracted');
+  assert.equal(result.isEvent, true);
+  assert.equal(result.savedCount, 1);
+  assert.equal(mockDb.events[0].title, 'Pre-Extracted Storytime');
+});
+
+test('ingestEvent unbundles multiple events and links them to UrlSubmission via submissionId', async () => {
+  const mockDb = createMockPrisma();
+  const mockExtractor: LLMExtractor = {
+    extractEvents: async () => ({
+      isEvent: true,
+      confidence: 0.95,
+      events: [
+        {
+          title: 'Weekend Festival Day 1',
+          startDate: '2026-10-10',
+          location: 'Golden Gate Park, San Francisco',
+          category: 'festival',
+          isFree: true,
+          description: 'Day 1 festivities',
+        },
+        {
+          title: 'Weekend Festival Day 2',
+          startDate: '2026-10-11',
+          location: 'Golden Gate Park, San Francisco',
+          category: 'festival',
+          isFree: true,
+          description: 'Day 2 festivities',
+        },
+      ],
+    }),
+  };
+
+  const result = await ingestEvent(
+    'source_url_submission',
+    {
+      postUrl: 'https://sfweekendguide.com/october-festivals',
+      caption: 'Full guide of weekend activities',
+      submissionId: 'sub_123',
+    },
+    {
+      db: mockDb as any,
+      extractor: mockExtractor,
+      geocode: async () => null,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(result.savedCount, 2);
+  assert.equal(mockDb.events.length, 2);
+  assert.equal(mockDb.events[0].submissionId, 'sub_123');
+  assert.equal(mockDb.events[1].submissionId, 'sub_123');
+
+  // Verify UrlSubmission was updated
+  const updatedSub = await mockDb.urlSubmission.findUnique({ where: { id: 'sub_123' } });
+  assert.ok(updatedSub);
+  assert.equal(updatedSub.status, 'completed');
+  assert.equal(updatedSub.extractedEventCount, 2);
+});
+
+test('ingestEvent uses Gate 3 to skip LLM when content contains zero event signals', async () => {
+  const mockDb = createMockPrisma();
+  let extractorCalled = false;
+  const mockExtractor: LLMExtractor = {
+    extractEvents: async () => {
+      extractorCalled = true;
+      return { isEvent: true, confidence: 1.0, events: [] };
+    },
+  };
+
+  const result = await ingestEvent(
+    'source_url_submission',
+    {
+      postUrl: 'https://mommyblog.com/avocado-toast-recipe',
+      caption: 'Today we are making healthy avocado toast for breakfast. Ingredients: bread, avocado, lemon juice.',
+      submissionId: 'sub_recipe',
+    },
+    {
+      db: mockDb as any,
+      extractor: mockExtractor,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(extractorCalled, false, 'LLM extractor should be skipped when Gate 3 detects no events');
+  assert.equal(result.isEvent, false);
+  assert.equal(result.savedCount, 0);
+
+  const updatedSub = await mockDb.urlSubmission.findUnique({ where: { id: 'sub_recipe' } });
+  assert.ok(updatedSub);
+  assert.equal(updatedSub.status, 'rejected');
+  assert.equal(updatedSub.extractedEventCount, 0);
+});
+
+test('ingestEvent uses Gate 4 to triage events to pending when venue is missing or ambiguous', async () => {
+  const mockDb = createMockPrisma();
+  const mockExtractor: LLMExtractor = {
+    extractEvents: async () => ({
+      isEvent: true,
+      confidence: 0.95,
+      events: [
+        {
+          title: 'Outdoor Playdate',
+          startDate: '2026-10-18',
+          location: null, // missing location!
+          category: 'other',
+          isFree: true,
+          description: 'Meet up for outdoor play',
+        },
+      ],
+    }),
+  };
+
+  const result = await ingestEvent(
+    'source_1',
+    {
+      postUrl: 'https://community.org/playdate',
+      caption: 'Join our fall playdate!',
+    },
+    {
+      db: mockDb as any,
+      extractor: mockExtractor,
+      currentDate: '2026-09-12',
+    }
+  );
+
+  assert.equal(result.savedCount, 1);
+  const saved = mockDb.events[0];
+  assert.equal(saved.status, 'pending', 'Event with missing location should be set to pending for review');
 });

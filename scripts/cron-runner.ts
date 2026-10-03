@@ -35,9 +35,18 @@ interface SourceReport {
   error?: string;
 }
 
+interface SubmissionReport {
+  id: string;
+  url: string;
+  status: string;
+  extractedCount: number;
+  error?: string;
+}
+
 interface CronResponse {
   success?: boolean;
   report?: SourceReport[];
+  submissionsReport?: SubmissionReport[];
   error?: string;
 }
 
@@ -79,6 +88,20 @@ async function run(): Promise<void> {
 
   for (const r of skipped) {
     console.log(`[cron-runner]   ⏭  @${r.source}: not due (interval: ${r.intervalHours}h)`);
+  }
+
+  const submissions = data.submissionsReport ?? [];
+  if (submissions.length > 0) {
+    console.log(`[cron-runner] Processed ${submissions.length} queued URL submission(s):`);
+    for (const s of submissions) {
+      if (s.status === 'completed') {
+        console.log(`[cron-runner]   ✅ ${s.url} -> ${s.extractedCount} events extracted`);
+      } else if (s.status === 'rejected') {
+        console.log(`[cron-runner]   ⏭  ${s.url} -> rejected / no events found`);
+      } else {
+        console.error(`[cron-runner]   ❌ ${s.url} -> failed: ${s.error ?? 'Unknown error'}`);
+      }
+    }
   }
 }
 

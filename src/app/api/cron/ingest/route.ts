@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { scrapeInstagramAccount } from '@/lib/apify';
 import { ingestEvent } from '@/lib/event-ingestion';
 import { buildPastEventsPruneWhere } from '@/lib/event-utils';
+import { processUrlSubmission } from '@/lib/url-submission-processor';
 
 export const dynamic = 'force-dynamic';
 
@@ -160,9 +161,47 @@ async function handleCronTrigger(request: Request) {
       }
     }
 
+    // 4. Sweep queued URL submissions (up to 5 per cron run)
+    const queuedSubmissions = await prisma.urlSubmission.findMany({
+      where: { status: 'queued' },
+      take: 5,
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const submissionsReport: Array<{
+      id: string;
+      url: string;
+      status: string;
+      extractedCount: number;
+      error?: string;
+    }> = [];
+
+    for (const sub of queuedSubmissions) {
+      try {
+        const subResult = await processUrlSubmission(sub.id);
+        submissionsReport.push({
+          id: sub.id,
+          url: sub.rawUrl,
+          status: subResult.status,
+          extractedCount: subResult.extractedEventCount,
+          error: subResult.error,
+        });
+      } catch (subErr) {
+        console.error(`Cron processing failed for submission ${sub.id}:`, subErr);
+        submissionsReport.push({
+          id: sub.id,
+          url: sub.rawUrl,
+          status: 'failed',
+          extractedCount: 0,
+          error: (subErr as Error).message,
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       report,
+      submissionsReport,
     });
   } catch (error) {
     return NextResponse.json(

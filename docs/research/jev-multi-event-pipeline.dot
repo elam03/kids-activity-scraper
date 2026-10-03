@@ -1,0 +1,238 @@
+digraph JevPipelineMulti {
+    graph [
+        rankdir=TB,
+        bgcolor="#ffffff",
+        fontname="Helvetica,Arial,sans-serif",
+        fontsize=14,
+        nodesep=0.45,
+        ranksep=0.6,
+        pad="0.5,0.5",
+        compound=true,
+        splines=true
+    ];
+
+    node [
+        fontname="Helvetica,Arial,sans-serif",
+        fontsize=11,
+        shape=rect,
+        style="filled,rounded",
+        penwidth=1.5,
+        margin="0.2,0.12"
+    ];
+
+    edge [
+        fontname="Helvetica,Arial,sans-serif",
+        fontsize=10,
+        color="#64748b",
+        penwidth=1.5,
+        arrowsize=0.8
+    ];
+
+    // Stage 1: Ingestion Entry
+    subgraph cluster_entry {
+        label = "1. Ingestion Entry";
+        fontname="Helvetica-Bold,Arial,sans-serif";
+        fontsize=13;
+        fontcolor="#1e293b";
+        color="#cbd5e1";
+        style="filled,rounded";
+        fillcolor="#f8fafc";
+        margin=16;
+
+        sub_url [
+            label="🌐 Public Visitor Submits URL\n(Roundup post, Weekend guide, Single event, Flyer)",
+            fillcolor="#e2e8f0",
+            color="#94a3b8",
+            fontcolor="#0f172a"
+        ];
+
+        gate_1 [
+            label="⚡ Gate 1: Jev Triage (~100ms)\nIs this URL relevant to Bay Area kids/family activities\nor obvious spam / commercial junk?",
+            shape=hexagon,
+            fillcolor="#ede9fe",
+            color="#7c3aed",
+            fontcolor="#4c1d95",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+
+        reject_spam [
+            label="❌ Reject / Flag as Spam\n(Save compute & Apify credits)",
+            fillcolor="#fee2e2",
+            color="#ef4444",
+            fontcolor="#991b1b"
+        ];
+    }
+
+    // Stage 2: Scraper Route Selection
+    subgraph cluster_routing {
+        label = "2. Scraper Route Selection";
+        fontname="Helvetica-Bold,Arial,sans-serif";
+        fontsize=13;
+        fontcolor="#1e293b";
+        color="#cbd5e1";
+        style="filled,rounded";
+        fillcolor="#f8fafc";
+        margin=16;
+
+        gate_2 [
+            label="⚡ Gate 2: Jev Scraper Routing (~100ms)\nMatch URL domain & shape\nto the cheapest extraction tool",
+            shape=hexagon,
+            fillcolor="#ede9fe",
+            color="#7c3aed",
+            fontcolor="#4c1d95",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+
+        sc_insta [
+            label="📸 Apify Instagram Actor\n(Carousel slides & caption)",
+            fillcolor="#e0f2fe",
+            color="#0284c7",
+            fontcolor="#0369a1"
+        ];
+
+        sc_direct [
+            label="⚡ Direct HTTP Fetch + Readability\n(Free, <500ms, JSON-LD support)",
+            fillcolor="#ecfdf5",
+            color="#059669",
+            fontcolor="#047857"
+        ];
+
+        sc_crawler [
+            label="🌐 Apify Web Content Crawler\n(For SPAs & Cloudflare bot walls)",
+            fillcolor="#fef3c7",
+            color="#d97706",
+            fontcolor="#b45309"
+        ];
+
+        sc_image [
+            label="🖼️ Flyer Vision Parser\n(Direct image download + OCR)",
+            fillcolor="#fce7f3",
+            color="#db2777",
+            fontcolor="#be185d"
+        ];
+    }
+
+    // Stage 3: Content Filtering & Multi-Event Extraction
+    subgraph cluster_extraction {
+        label = "3. Multi-Event Extraction & Filtering";
+        fontname="Helvetica-Bold,Arial,sans-serif";
+        fontsize=13;
+        fontcolor="#1e293b";
+        color="#cbd5e1";
+        style="filled,rounded";
+        fillcolor="#f8fafc";
+        margin=16;
+
+        raw_content [
+            label="📄 Raw Content / Full Text Extracted\n(May describe 1 event or 5+ events in a guide/roundup)",
+            fillcolor="#f1f5f9",
+            color="#94a3b8",
+            fontcolor="#1e293b"
+        ];
+
+        gate_3 [
+            label="⚡ Gate 3: Jev Event Filter (~100ms)\nDoes this page contain one or more upcoming events,\nor is it general prose/recipes/advice?",
+            shape=hexagon,
+            fillcolor="#ede9fe",
+            color="#7c3aed",
+            fontcolor="#4c1d95",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+
+        skip_llm [
+            label="⏭️ Skip Deep LLM (0 Events)\nMark submission completed (0 events),\nsave tokens & time",
+            fillcolor="#f1f5f9",
+            color="#64748b",
+            fontcolor="#475569"
+        ];
+
+        deep_llm [
+            label="🤖 GPT-4o Mini Multi-Event Extractor\nReturns array: events = [Event 1, Event 2, ... Event N]\nHandles multi-day dates, recurring times, separate venues",
+            fillcolor="#dbeafe",
+            color="#2563eb",
+            fontcolor="#1d4ed8",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+    }
+
+    // Stage 4: Fan-Out & Per-Event Review
+    subgraph cluster_fanout {
+        label = "4. Fan-Out: Per-Event Deduplication & Triage";
+        fontname="Helvetica-Bold,Arial,sans-serif";
+        fontsize=13;
+        fontcolor="#1e293b";
+        color="#cbd5e1";
+        style="filled,rounded";
+        fillcolor="#f8fafc";
+        margin=16;
+
+        splitter [
+            label="🔀 Multi-Event Unbundler\nIterate over each extracted event\nCheck uniqueness by [rawPostUrl + title]",
+            fillcolor="#ede9fe",
+            color="#8b5cf6",
+            fontcolor="#5b21b6",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+
+        gate_4 [
+            label="⚡ Gate 4: Jev Per-Event Triage (~50ms per item)\nEvaluate EACH event independently:\nSpecific venue? Within Bay Area? Dates clear?",
+            shape=hexagon,
+            fillcolor="#ede9fe",
+            color="#7c3aed",
+            fontcolor="#4c1d95",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+
+        st_approved [
+            label="✅ Status: Approved (Live)\nHigh confidence, clear venue & time\nRenders directly on public calendar",
+            fillcolor="#dcfce7",
+            color="#16a34a",
+            fontcolor="#15803d",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+
+        st_pending [
+            label="⚠️ Status: Pending (Review Queue)\nAmbiguous date, missing venue, or outside core area\nQueued for admin 1-click verify",
+            fillcolor="#fef3c7",
+            color="#d97706",
+            fontcolor="#b45309",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+
+        save_queue [
+            label="💾 Record UrlSubmission Queue Summary\nStatus: completed | extractedEventCount = N\nLinks all created Event rows via submissionId",
+            fillcolor="#e0e7ff",
+            color="#4f46e5",
+            fontcolor="#3730a3",
+            fontname="Helvetica-Bold,Arial,sans-serif"
+        ];
+    }
+
+    // Connectors
+    sub_url -> gate_1;
+    gate_1 -> reject_spam [label=" Spam / Irrelevant", color="#ef4444", fontcolor="#b91c1c"];
+    gate_1 -> gate_2 [label=" Valid Candidate", color="#16a34a", fontcolor="#15803d"];
+
+    gate_2 -> sc_insta [label=" Instagram", fontcolor="#0369a1"];
+    gate_2 -> sc_direct [label=" Standard Web / JSON-LD", fontcolor="#047857"];
+    gate_2 -> sc_crawler [label=" SPA / Cloudflare", fontcolor="#b45309"];
+    gate_2 -> sc_image [label=" Flyer Image", fontcolor="#be185d"];
+
+    sc_insta -> raw_content;
+    sc_direct -> raw_content;
+    sc_crawler -> raw_content;
+    sc_image -> raw_content;
+
+    raw_content -> gate_3;
+    gate_3 -> skip_llm [label=" No Events", color="#94a3b8", fontcolor="#64748b"];
+    gate_3 -> deep_llm [label=" Event Content Found", color="#2563eb", fontcolor="#1d4ed8"];
+
+    deep_llm -> splitter [label=" Output: events[ ]", color="#8b5cf6", fontcolor="#6d28d9"];
+    splitter -> gate_4 [label=" For Each Event (1..N)", color="#7c3aed", fontcolor="#5b21b6"];
+
+    gate_4 -> st_approved [label=" Clear Venue & Dates", color="#16a34a", fontcolor="#15803d"];
+    gate_4 -> st_pending [label=" Ambiguous / Incomplete", color="#d97706", fontcolor="#b45309"];
+
+    st_approved -> save_queue;
+    st_pending -> save_queue;
+}
