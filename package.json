@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test src/lib/*.test.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "evaluate:today": "tsx scripts/evaluate-today-events.ts",
+    "eval:today": "tsx scripts/evaluate-today-events.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.17.0",
