@@ -324,6 +324,15 @@ export default function CalendarHome() {
             </button>
 
             <a
+              href="/alternate-render/view-1"
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold border transition shadow-sm ${activeTheme.navBtn}`}
+              title="Super lean, simplistic calendar view"
+            >
+              <span>⚡</span>
+              <span>Lean View</span>
+            </a>
+
+            <a
               href="/admin"
               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-semibold border transition ${activeTheme.navBtn}`}
             >
@@ -498,6 +507,14 @@ export default function CalendarHome() {
               <span>👨‍👩‍👧‍👦</span>
               <span>About</span>
             </button>
+            <a
+              href="/alternate-render/view-1"
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-emerald-400 transition font-medium"
+              title="Super lean calendar view"
+            >
+              <span>⚡</span>
+              <span>Lean View</span>
+            </a>
             <a
               href={KOFI_DONATION_URL}
               target="_blank"
