@@ -14,6 +14,7 @@ import {
   ensureHttps,
   getSecurityHeaders,
   filterAdminEvents,
+  getEventSourceInfo,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -335,6 +336,43 @@ test('filterAdminEvents combines past event filtering with status and category f
   });
   assert.equal(filtered.length, 1);
   assert.equal(filtered[0].title, 'Active Sports');
+});
+
+test('getEventSourceInfo extracts Instagram source information correctly', () => {
+  const info = getEventSourceInfo({
+    source: { handle: 'bayarea_toddlerexplorer', name: 'Bay Area Toddler Explorer' },
+    rawPostUrl: 'https://www.instagram.com/p/C-12345/',
+  });
+  assert.equal(info.type, 'instagram');
+  assert.equal(info.badge, 'Instagram');
+  assert.equal(info.label, '@bayarea_toddlerexplorer');
+  assert.equal(info.url, 'https://www.instagram.com/p/C-12345/');
+  assert.equal(info.domain, 'instagram.com');
+});
+
+test('getEventSourceInfo extracts Web Submission information correctly', () => {
+  const info = getEventSourceInfo({
+    source: { handle: 'community_submissions', name: 'Community Submissions' },
+    rawPostUrl: 'https://www.eventbrite.com/e/kids-stem-workshop-tickets-98765',
+    submissionId: 'sub-123',
+  });
+  assert.equal(info.type, 'web_url');
+  assert.equal(info.badge, 'Web URL');
+  assert.equal(info.label, 'eventbrite.com');
+  assert.equal(info.domain, 'eventbrite.com');
+  assert.equal(info.url, 'https://www.eventbrite.com/e/kids-stem-workshop-tickets-98765');
+});
+
+test('getEventSourceInfo falls back gracefully when source or URL is missing', () => {
+  const info = getEventSourceInfo({
+    source: null,
+    rawPostUrl: null,
+  });
+  assert.equal(info.type, 'other');
+  assert.equal(info.badge, 'Source');
+  assert.equal(info.label, 'Unknown');
+  assert.equal(info.domain, null);
+  assert.equal(info.url, null);
 });
 
 

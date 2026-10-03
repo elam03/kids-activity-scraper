@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { isNeedsReview, isEscapeKey, filterAdminEvents } from '@/lib/event-utils';
+import { isNeedsReview, isEscapeKey, filterAdminEvents, getEventSourceInfo } from '@/lib/event-utils';
 
 export interface AdminEvent {
   id: string;
   sourceId: string;
+  submissionId?: string | null;
   source: {
     handle: string;
     name: string;
@@ -450,7 +451,8 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
             <table className="w-full text-left text-xs">
               <thead className={`border-b font-bold uppercase text-[10px] tracking-wider ${activeTheme.tableHeader || 'bg-slate-950/40 text-slate-400 border-slate-800/60'}`}>
                 <tr>
-                  <th className="py-3.5 px-4">Event & Source</th>
+                  <th className="py-3.5 px-4">Event</th>
+                  <th className="py-3.5 px-4">Source</th>
                   <th className="py-3.5 px-4">Date & Time</th>
                   <th className="py-3.5 px-4">Location</th>
                   <th className="py-3.5 px-4">Category</th>
@@ -463,6 +465,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                 {filteredEvents.map(ev => {
                   const needsReview = isNeedsReview(ev);
                   const confidencePct = Math.round((ev.confidence || 0) * 100);
+                  const srcInfo = getEventSourceInfo(ev);
 
                   return (
                     <tr
@@ -471,7 +474,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                         needsReview ? 'bg-amber-500/10' : ''
                       }`}
                     >
-                      {/* Title & Source */}
+                      {/* Event Title */}
                       <td className="py-3.5 px-4 max-w-xs">
                         <div className="flex items-start gap-2">
                           {needsReview && (
@@ -482,28 +485,44 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                               ⚠️
                             </span>
                           )}
-                          <div>
-                            <button
-                              onClick={() => setEditingEvent({ ...ev })}
-                              className={`font-bold text-left line-clamp-1 hover:underline transition ${activeTheme.textHeading}`}
-                            >
-                              {ev.title}
-                            </button>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className={`text-[11px] font-medium ${activeTheme.tableMuted || 'text-slate-400'}`}>
-                                @{ev.source?.handle}
-                              </span>
-                              {ev.rawPostUrl && (
-                                <a
-                                  href={ev.rawPostUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-[11px] text-violet-600 dark:text-violet-400 hover:underline font-bold"
-                                >
-                                  Post ↗
-                                </a>
-                              )}
-                            </div>
+                          <button
+                            onClick={() => setEditingEvent({ ...ev })}
+                            className={`font-bold text-left line-clamp-2 hover:underline transition ${activeTheme.textHeading}`}
+                          >
+                            {ev.title}
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Source */}
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1 items-start">
+                          <span
+                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                              srcInfo.type === 'instagram'
+                                ? 'bg-pink-500/10 text-pink-500 dark:text-pink-400 border border-pink-500/20'
+                                : srcInfo.type === 'web_url'
+                                ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
+                                : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                            }`}
+                          >
+                            {srcInfo.type === 'instagram' ? '📷 Instagram' : srcInfo.type === 'web_url' ? '🌐 Web' : '📌 Source'}
+                          </span>
+                          <div className="flex items-center gap-1.5 text-[11px]">
+                            <span className={`font-medium max-w-[130px] truncate ${activeTheme.tableMuted || 'text-slate-400'}`} title={srcInfo.label}>
+                              {srcInfo.label}
+                            </span>
+                            {srcInfo.url && (
+                              <a
+                                href={srcInfo.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-violet-600 dark:text-violet-400 hover:underline font-bold text-[10px]"
+                                title="View original post or page"
+                              >
+                                ↗
+                              </a>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -667,27 +686,30 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
             <form onSubmit={handleSaveEdit} className="flex-1 flex flex-col min-h-0 overflow-hidden text-xs">
               <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
                 {/* Quick Verification Banner */}
-                {editingEvent.rawPostUrl && (
-                  <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${activeTheme.modalInner || 'bg-violet-950/30 border-violet-500/30'}`}>
-                <div className="flex items-center gap-2 text-xs font-semibold">
-                  <span className="text-sm">📸</span>
-                  <span>
-                    Source: <strong>@{editingEvent.source?.handle}</strong>
-                  </span>
-                </div>
-                <a
-                  href={editingEvent.rawPostUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white transition active:scale-95 shadow-sm"
-                >
-                  <span>View Original Post</span>
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            )}
+                {editingEvent.rawPostUrl && (() => {
+                  const modalSrcInfo = getEventSourceInfo(editingEvent);
+                  return (
+                    <div className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${activeTheme.modalInner || 'bg-violet-950/30 border-violet-500/30'}`}>
+                      <div className="flex items-center gap-2 text-xs font-semibold">
+                        <span className="text-sm">{modalSrcInfo.type === 'instagram' ? '📸' : '🌐'}</span>
+                        <span>
+                          Source: <strong>{modalSrcInfo.label}</strong> <span className="opacity-70 font-normal">({modalSrcInfo.badge})</span>
+                        </span>
+                      </div>
+                      <a
+                        href={editingEvent.rawPostUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-violet-600 hover:bg-violet-500 text-white transition active:scale-95 shadow-sm"
+                      >
+                        <span>{modalSrcInfo.type === 'instagram' ? 'View Instagram Post' : 'View Source Page'}</span>
+                        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
+                  );
+                })()}
 
             {/* User Feedback Indicators */}
             {((editingEvent._count?.feedbacks || 0) > 0 || (editingEvent.likes || 0) > 0) && (

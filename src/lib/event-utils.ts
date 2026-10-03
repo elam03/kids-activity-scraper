@@ -300,3 +300,70 @@ export function filterAdminEvents<
     return true;
   });
 }
+
+export interface EventSourceInfo {
+  type: 'instagram' | 'web_url' | 'other';
+  label: string;
+  badge: string;
+  url: string | null;
+  domain: string | null;
+}
+
+/**
+ * Extracts and classifies the source provenance of an event (Instagram handle vs URL Submission vs Other).
+ */
+export function getEventSourceInfo(event: {
+  source?: { handle?: string; name?: string } | null;
+  rawPostUrl?: string | null;
+  submissionId?: string | null;
+}): EventSourceInfo {
+  const rawUrl = event.rawPostUrl || null;
+  let domain: string | null = null;
+
+  if (rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      domain = parsed.hostname.replace(/^www\./, '');
+    } catch {
+      // Ignore invalid URL formatting
+    }
+  }
+
+  const isSubmission =
+    Boolean(event.submissionId) ||
+    event.source?.handle === 'community_submissions' ||
+    (domain !== null && !domain.includes('instagram.com'));
+
+  if (isSubmission) {
+    return {
+      type: 'web_url',
+      badge: 'Web URL',
+      label: domain || event.source?.name || 'Web Submission',
+      url: rawUrl,
+      domain,
+    };
+  }
+
+  const isInstagram =
+    (domain !== null && domain.includes('instagram.com')) ||
+    Boolean(event.source?.handle && event.source.handle !== 'community_submissions');
+
+  if (isInstagram) {
+    return {
+      type: 'instagram',
+      badge: 'Instagram',
+      label: event.source?.handle ? `@${event.source.handle}` : 'Instagram',
+      url: rawUrl,
+      domain: domain || 'instagram.com',
+    };
+  }
+
+  return {
+    type: 'other',
+    badge: 'Source',
+    label: event.source?.name || event.source?.handle || 'Unknown',
+    url: rawUrl,
+    domain,
+  };
+}
+
