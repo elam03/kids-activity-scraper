@@ -136,6 +136,14 @@ export default function DayDetailModal({
                               {costLabel}
                             </span>
                           )}
+                          {ev.sources && ev.sources.length >= 2 && (
+                            <span
+                              title={`Verified across ${ev.sources.length} sources`}
+                              className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold border whitespace-nowrap bg-emerald-500/10 text-emerald-500 border-emerald-500/30"
+                            >
+                              ✓ {ev.sources.length} sources
+                            </span>
+                          )}
                         </button>
                       );
                     })}

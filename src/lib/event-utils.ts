@@ -367,3 +367,80 @@ export function getEventSourceInfo(event: {
   };
 }
 
+/**
+ * Calculates boosted confidence score for an event based on multi-source confirmation:
+ * - 1 source: up to 0.90
+ * - 2 sources: 0.95
+ * - 3+ sources: 1.00
+ */
+export function calculateMultiSourceConfidence(sourceCount: number, baseConfidence = 0.85): number {
+  if (sourceCount <= 0) return 0.50;
+  if (sourceCount === 1) return Math.min(0.90, Math.max(0.70, baseConfidence));
+  if (sourceCount === 2) return 0.95;
+  return 1.00;
+}
+
+export interface EventVerificationInfo {
+  isVerified: boolean;
+  sourceCount: number;
+  confidence: number;
+  badgeText: string;
+  sources: EventSourceInfo[];
+}
+
+/**
+ * Derives verification status, source count, confidence, and provenance badges for an event.
+ */
+export function getEventVerificationInfo(event: {
+  source?: { handle?: string; name?: string } | null;
+  rawPostUrl?: string | null;
+  submissionId?: string | null;
+  confidence?: number | null;
+  sources?: Array<{
+    id?: string;
+    sourceId?: string | null;
+    rawPostUrl: string;
+    rawCaption?: string | null;
+    isPrimary?: boolean;
+    source?: { handle?: string; name?: string } | null;
+    submissionId?: string | null;
+  }> | null;
+}): EventVerificationInfo {
+  let sourcesInfo: EventSourceInfo[] = [];
+
+  if (Array.isArray(event.sources) && event.sources.length > 0) {
+    sourcesInfo = event.sources.map((s) =>
+      getEventSourceInfo({
+        source: s.source,
+        rawPostUrl: s.rawPostUrl,
+        submissionId: s.submissionId,
+      })
+    );
+  } else {
+    sourcesInfo = [
+      getEventSourceInfo({
+        source: event.source,
+        rawPostUrl: event.rawPostUrl,
+        submissionId: event.submissionId,
+      }),
+    ];
+  }
+
+  const sourceCount = sourcesInfo.length;
+  const isVerified = sourceCount >= 2;
+  const confidence = calculateMultiSourceConfidence(sourceCount, event.confidence ?? 0.85);
+
+  const badgeText = isVerified
+    ? `✓ Verified (${sourceCount} sources)`
+    : 'Single source';
+
+  return {
+    isVerified,
+    sourceCount,
+    confidence,
+    badgeText,
+    sources: sourcesInfo,
+  };
+}
+
+

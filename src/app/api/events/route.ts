@@ -7,7 +7,12 @@ export async function GET() {
   try {
     const events = await prisma.event.findMany({
       where: { status: 'approved' },
-      include: { source: true },
+      include: {
+        source: true,
+        sources: {
+          include: { source: true },
+        },
+      },
       orderBy: [
         { startDate: 'asc' },
         { startTime: 'asc' }

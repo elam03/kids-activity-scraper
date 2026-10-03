@@ -25,6 +25,19 @@ export interface CalendarEvent {
   latitude?: number | null;
   longitude?: number | null;
   likes?: number;
+  confidence?: number;
+  sources?: Array<{
+    id?: string;
+    sourceId?: string | null;
+    rawPostUrl: string;
+    rawCaption?: string | null;
+    isPrimary?: boolean;
+    submissionId?: string | null;
+    source?: {
+      handle: string;
+      name: string;
+    } | null;
+  }>;
 }
 
 export function formatLocalDate(date: Date): string {

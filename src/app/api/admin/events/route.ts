@@ -24,6 +24,9 @@ export async function GET(request: Request) {
       where: whereClause,
       include: {
         source: true,
+        sources: {
+          include: { source: true },
+        },
         _count: {
           select: {
             feedbacks: {

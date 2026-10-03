@@ -15,6 +15,8 @@ import {
   getSecurityHeaders,
   filterAdminEvents,
   getEventSourceInfo,
+  calculateMultiSourceConfidence,
+  getEventVerificationInfo,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -373,6 +375,54 @@ test('getEventSourceInfo falls back gracefully when source or URL is missing', (
   assert.equal(info.label, 'Unknown');
   assert.equal(info.domain, null);
   assert.equal(info.url, null);
+});
+
+test('calculateMultiSourceConfidence boosts confidence based on source confirmations', () => {
+  assert.equal(calculateMultiSourceConfidence(1, 0.85), 0.85);
+  assert.equal(calculateMultiSourceConfidence(1, 0.95), 0.90, 'Single source confidence is capped at 0.90');
+  assert.equal(calculateMultiSourceConfidence(2, 0.85), 0.95, '2 sources boosts confidence to 0.95');
+  assert.equal(calculateMultiSourceConfidence(3, 0.80), 1.00, '3+ sources boosts confidence to 1.00');
+  assert.equal(calculateMultiSourceConfidence(4, 0.90), 1.00);
+});
+
+test('getEventVerificationInfo calculates verification status and badges', () => {
+  // Single source unverified
+  const singleSourceEvent = {
+    source: { handle: 'library_kids', name: 'Library' },
+    rawPostUrl: 'https://instagram.com/p/story123',
+    confidence: 0.85,
+  };
+  const singleInfo = getEventVerificationInfo(singleSourceEvent);
+  assert.equal(singleInfo.isVerified, false);
+  assert.equal(singleInfo.sourceCount, 1);
+  assert.equal(singleInfo.badgeText, 'Single source');
+  assert.equal(singleInfo.sources.length, 1);
+
+  // Multi-source verified event (Instagram + Eventbrite)
+  const multiSourceEvent = {
+    confidence: 0.85,
+    sources: [
+      {
+        rawPostUrl: 'https://instagram.com/p/harvest123',
+        source: { handle: 'alamedafair', name: 'Alameda County Fair' },
+        isPrimary: true,
+      },
+      {
+        rawPostUrl: 'https://eventbrite.com/e/pleasanton-harvest-fest',
+        source: { handle: 'community_submissions', name: 'Community Submissions' },
+        submissionId: 'sub-456',
+        isPrimary: false,
+      },
+    ],
+  };
+  const multiInfo = getEventVerificationInfo(multiSourceEvent);
+  assert.equal(multiInfo.isVerified, true);
+  assert.equal(multiInfo.sourceCount, 2);
+  assert.equal(multiInfo.confidence, 0.95);
+  assert.equal(multiInfo.badgeText, '✓ Verified (2 sources)');
+  assert.equal(multiInfo.sources.length, 2);
+  assert.equal(multiInfo.sources[0].badge, 'Instagram');
+  assert.equal(multiInfo.sources[1].badge, 'Web URL');
 });
 
 

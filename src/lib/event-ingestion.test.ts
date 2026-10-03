@@ -71,6 +71,12 @@ function createMockPrisma() {
       },
     },
     eventSource: {
+      count: async ({ where }: any = {}) => {
+        if (where?.eventId) {
+          return eventSources.filter((es) => es.eventId === where.eventId).length;
+        }
+        return eventSources.length;
+      },
       findFirst: async ({ where }: any) => {
         return eventSources.find((es) => es.rawPostUrl === where.rawPostUrl) || null;
       },
@@ -599,6 +605,7 @@ test('ingestEvent records primary EventSource on initial creation and merges cro
   assert.equal(canonical.cost, '$15');
   assert.equal(canonical.registrationUrl, 'https://eventbrite.com/e/harvest-festival-pleasanton');
   assert.equal(canonical.location, 'Alameda County Fairgrounds, 4501 Pleasanton Ave, Pleasanton');
+  assert.equal(canonical.confidence, 0.95, 'Canonical event confidence boosted to 0.95 upon 2nd source confirmation');
 });
 
 test('ingestEvent uses Gate 5 for borderline ambiguity and respects triage decision', async () => {

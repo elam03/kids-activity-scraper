@@ -13,6 +13,7 @@ import {
   computeTitleSimilarity,
   type EventCandidate,
 } from './event-deduplication';
+import { calculateMultiSourceConfidence } from './event-utils';
 
 export interface IngestEventPayload {
   postUrl: string;
@@ -302,11 +303,31 @@ export async function ingestEvent(
       if (duplicateMatch && duplicateMatch.candidate.id) {
         const matchedEventId = duplicateMatch.candidate.id;
 
-        if (duplicateMatch.patch && Object.keys(duplicateMatch.patch).length > 0 && db.event.update) {
+        let currentSourceCount = 1;
+        if (db.eventSource?.count) {
+          try {
+            currentSourceCount = await db.eventSource.count({
+              where: { eventId: matchedEventId },
+            });
+          } catch {
+            currentSourceCount = 1;
+          }
+        }
+        const updatedConfidence = calculateMultiSourceConfidence(
+          currentSourceCount + 1,
+          duplicateMatch.candidate.confidence
+        );
+
+        const eventPatch = {
+          ...duplicateMatch.patch,
+          confidence: updatedConfidence,
+        };
+
+        if (Object.keys(eventPatch).length > 0 && db.event.update) {
           try {
             await db.event.update({
               where: { id: matchedEventId },
-              data: duplicateMatch.patch,
+              data: eventPatch,
             });
           } catch (err) {
             console.error(`Failed to patch canonical event ${matchedEventId}:`, err);

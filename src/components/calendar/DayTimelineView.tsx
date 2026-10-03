@@ -91,6 +91,14 @@ export default function DayTimelineView({
                             <span className="truncate max-w-[110px]">{ev.location.split(',')[0]}</span>
                           </>
                         )}
+                        {ev.sources && ev.sources.length >= 2 && (
+                          <span
+                            title={`Verified by ${ev.sources.length} sources`}
+                            className="ml-auto shrink-0 inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20"
+                          >
+                            ✓ {ev.sources.length}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -35,6 +35,18 @@ export interface AdminEvent {
   _count?: {
     feedbacks?: number;
   };
+  sources?: Array<{
+    id?: string;
+    sourceId?: string | null;
+    rawPostUrl: string;
+    rawCaption?: string | null;
+    isPrimary?: boolean;
+    submissionId?: string | null;
+    source?: {
+      handle: string;
+      name: string;
+    } | null;
+  }>;
 }
 
 interface EventsManagerProps {
@@ -497,17 +509,27 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                       {/* Source */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1 items-start">
-                          <span
-                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                              srcInfo.type === 'instagram'
-                                ? 'bg-pink-500/10 text-pink-500 dark:text-pink-400 border border-pink-500/20'
-                                : srcInfo.type === 'web_url'
-                                ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
-                                : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
-                            }`}
-                          >
-                            {srcInfo.type === 'instagram' ? '📷 Instagram' : srcInfo.type === 'web_url' ? '🌐 Web' : '📌 Source'}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                                srcInfo.type === 'instagram'
+                                  ? 'bg-pink-500/10 text-pink-500 dark:text-pink-400 border border-pink-500/20'
+                                  : srcInfo.type === 'web_url'
+                                  ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'
+                                  : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                              }`}
+                            >
+                              {srcInfo.type === 'instagram' ? '📷 Instagram' : srcInfo.type === 'web_url' ? '🌐 Web' : '📌 Source'}
+                            </span>
+                            {ev.sources && ev.sources.length >= 2 && (
+                              <span
+                                className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                title={`Confirmed across ${ev.sources.length} sources`}
+                              >
+                                +{ev.sources.length - 1} more
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-1.5 text-[11px]">
                             <span className={`font-medium max-w-[130px] truncate ${activeTheme.tableMuted || 'text-slate-400'}`} title={srcInfo.label}>
                               {srcInfo.label}
@@ -558,17 +580,27 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
                       {/* Status / Confidence */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
                         <div className="flex flex-col gap-1">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold w-fit ${
-                              ev.status === 'approved'
-                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
-                                : ev.status === 'rejected'
-                                ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
-                                : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
-                            }`}
-                          >
-                            {ev.status.toUpperCase()}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold w-fit ${
+                                ev.status === 'approved'
+                                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                                  : ev.status === 'rejected'
+                                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30'
+                                  : 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30'
+                              }`}
+                            >
+                              {ev.status.toUpperCase()}
+                            </span>
+                            {ev.sources && ev.sources.length >= 2 && (
+                              <span
+                                title={`Confirmed across ${ev.sources.length} sources`}
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                              >
+                                ✓ {ev.sources.length} sources
+                              </span>
+                            )}
+                          </div>
                           <span
                             className={`text-[10px] font-bold ${
                               ev.status === 'rejected'

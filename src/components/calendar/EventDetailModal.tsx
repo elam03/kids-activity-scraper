@@ -4,6 +4,7 @@ import dynamicNext from 'next/dynamic';
 import EventFeedbackButtons from '@/components/EventFeedbackButtons';
 import type { CalendarEvent } from '@/lib/calendar-query';
 import { useBodyScrollLock } from '@/lib/modal-scroll-lock';
+import { getEventVerificationInfo } from '@/lib/event-utils';
 
 const EventMiniMap = dynamicNext(() => import('@/components/EventMiniMap'), {
   ssr: false,
@@ -27,6 +28,7 @@ export default function EventDetailModal({
   onBackToDay,
 }: EventDetailModalProps) {
   useBodyScrollLock();
+  const verification = getEventVerificationInfo(event);
 
   return (
     <div
@@ -58,7 +60,16 @@ export default function EventDetailModal({
               >
                 {event.category}
               </span>
-              <span className="text-xs text-slate-500 font-medium">via @{event.source.handle}</span>
+              {verification.isVerified ? (
+                <span className="inline-flex items-center gap-1 border px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                  <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Verified ({verification.sourceCount} sources)
+                </span>
+              ) : (
+                <span className="text-xs text-slate-500 font-medium">via @{event.source.handle}</span>
+              )}
             </div>
             <EventFeedbackButtons
               eventId={event.id}
@@ -70,6 +81,41 @@ export default function EventDetailModal({
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain pr-1 space-y-4 text-xs my-3 custom-scrollbar">
+          {verification.isVerified && (
+            <div className={`p-3 rounded-xl border ${activeTheme.modalInner} space-y-2`}>
+              <div className="flex items-center justify-between text-[9px] uppercase tracking-wider text-slate-500 font-semibold">
+                <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Confirmed Across {verification.sourceCount} Sources
+                </span>
+                <span className="text-[10px] text-slate-500 tabular-nums">
+                  {Math.round(verification.confidence * 100)}% Confidence
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-0.5">
+                {verification.sources.map((src, i) => (
+                  <a
+                    key={i}
+                    href={src.url || '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300/60 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 text-[11px] text-slate-700 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-400 transition"
+                  >
+                    <span>{src.type === 'instagram' ? '📷' : '🌐'}</span>
+                    <span className="font-medium">{src.label}</span>
+                    {src.badge && (
+                      <span className="text-[8px] uppercase tracking-wider text-slate-500 font-semibold">
+                        ({src.badge})
+                      </span>
+                    )}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className={`grid grid-cols-2 gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border ${activeTheme.modalInner}`}>
             <div>
               <div className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold mb-1">When</div>
