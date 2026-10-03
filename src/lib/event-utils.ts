@@ -234,3 +234,69 @@ export function getSecurityHeaders(): Array<{ key: string; value: string }> {
     },
   ];
 }
+
+export interface FilterAdminEventsOptions {
+  filterMode?: 'all' | 'needs_review' | 'approved' | 'rejected';
+  categoryFilter?: string;
+  searchQuery?: string;
+  showPastEvents?: boolean;
+  referenceDate?: string;
+}
+
+/**
+ * Pure filter function for Events Manager:
+ * - Hides past events by default (keeps events with endDate >= today)
+ * - Supports Show All toggle
+ * - Filters by review status mode and category
+ * - Applies search query matching across title, location, handle, category, description
+ */
+export function filterAdminEvents<
+  T extends {
+    startDate: string;
+    endDate?: string | null;
+    status: string;
+    category?: string;
+    title?: string;
+    location?: string | null;
+    description?: string;
+    source?: { handle?: string };
+  }
+>(events: T[], options: FilterAdminEventsOptions = {}): T[] {
+  const referenceDate = options.referenceDate || new Date().toISOString().split('T')[0];
+  const {
+    filterMode = 'all',
+    categoryFilter = 'all',
+    searchQuery = '',
+    showPastEvents = false,
+  } = options;
+  const q = searchQuery.trim().toLowerCase();
+
+  return events.filter((e) => {
+    // 1. Filter out past events unless showPastEvents is enabled
+    if (!showPastEvents && isPastEvent(e, referenceDate)) {
+      return false;
+    }
+
+    // 2. Status / review mode filter
+    if (filterMode === 'needs_review' && !isNeedsReview(e as any)) return false;
+    if (filterMode === 'approved' && e.status !== 'approved') return false;
+    if (filterMode === 'rejected' && e.status !== 'rejected') return false;
+
+    // 3. Category filter
+    if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
+
+    // 4. Search query
+    if (q) {
+      const matchesTitle = e.title?.toLowerCase().includes(q);
+      const matchesLoc = e.location?.toLowerCase().includes(q);
+      const matchesCategory = e.category?.toLowerCase().includes(q);
+      const matchesSource = e.source?.handle?.toLowerCase().includes(q);
+      const matchesDesc = e.description?.toLowerCase().includes(q);
+      if (!matchesTitle && !matchesLoc && !matchesCategory && !matchesSource && !matchesDesc) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+}

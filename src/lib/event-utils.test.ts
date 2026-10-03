@@ -13,6 +13,7 @@ import {
   resolveGaMeasurementId,
   ensureHttps,
   getSecurityHeaders,
+  filterAdminEvents,
 } from './event-utils';
 
 test('isNeedsReview returns false for rejected events regardless of confidence or missing fields', () => {
@@ -279,6 +280,61 @@ test('getSecurityHeaders returns HSTS, nosniff, and anti-clickjacking headers', 
   assert.equal(headerMap['Referrer-Policy'], 'strict-origin-when-cross-origin');
   assert.equal(headerMap['Permissions-Policy'], 'camera=(), microphone=(), geolocation=(self)');
   assert.equal(headerMap['X-XSS-Protection'], '1; mode=block');
+});
+
+test('filterAdminEvents hides past events by default and keeps ongoing multi-day events', () => {
+  const refDate = '2026-10-15';
+  const sampleEvents = [
+    { id: '1', title: 'Past Single Day', startDate: '2026-10-10', endDate: null, status: 'approved' },
+    { id: '2', title: 'Future Single Day', startDate: '2026-10-20', endDate: null, status: 'approved' },
+    { id: '3', title: 'Today Single Day', startDate: '2026-10-15', endDate: null, status: 'approved' },
+    { id: '4', title: 'Past Multi Day Ended', startDate: '2026-10-01', endDate: '2026-10-10', status: 'approved' },
+    { id: '5', title: 'Ongoing Multi Day', startDate: '2026-10-01', endDate: '2026-10-20', status: 'approved' },
+  ];
+
+  // Default: showPastEvents = false
+  const filtered = filterAdminEvents(sampleEvents, { referenceDate: refDate });
+  assert.equal(filtered.length, 3);
+  const titles = filtered.map((e) => e.title);
+  assert.ok(titles.includes('Future Single Day'));
+  assert.ok(titles.includes('Today Single Day'));
+  assert.ok(titles.includes('Ongoing Multi Day'));
+  assert.ok(!titles.includes('Past Single Day'));
+  assert.ok(!titles.includes('Past Multi Day Ended'));
+});
+
+test('filterAdminEvents shows all events when showPastEvents is true', () => {
+  const refDate = '2026-10-15';
+  const sampleEvents = [
+    { id: '1', title: 'Past Single Day', startDate: '2026-10-10', endDate: null, status: 'approved' },
+    { id: '2', title: 'Future Single Day', startDate: '2026-10-20', endDate: null, status: 'approved' },
+  ];
+
+  const filtered = filterAdminEvents(sampleEvents, {
+    referenceDate: refDate,
+    showPastEvents: true,
+  });
+  assert.equal(filtered.length, 2);
+});
+
+test('filterAdminEvents combines past event filtering with status and category filters', () => {
+  const refDate = '2026-10-15';
+  const sampleEvents = [
+    { id: '1', title: 'Active Sports', startDate: '2026-10-20', status: 'approved', category: 'sports' },
+    { id: '2', title: 'Active Arts', startDate: '2026-10-20', status: 'approved', category: 'arts' },
+    { id: '3', title: 'Past Sports', startDate: '2026-10-01', status: 'approved', category: 'sports' },
+    { id: '4', title: 'Rejected Sports', startDate: '2026-10-20', status: 'rejected', category: 'sports' },
+  ];
+
+  // Sports only, approved only, active only
+  const filtered = filterAdminEvents(sampleEvents, {
+    referenceDate: refDate,
+    filterMode: 'approved',
+    categoryFilter: 'sports',
+    showPastEvents: false,
+  });
+  assert.equal(filtered.length, 1);
+  assert.equal(filtered[0].title, 'Active Sports');
 });
 
 

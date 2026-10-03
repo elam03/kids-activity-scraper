@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { isNeedsReview, isEscapeKey } from '@/lib/event-utils';
+import { isNeedsReview, isEscapeKey, filterAdminEvents } from '@/lib/event-utils';
 
 export interface AdminEvent {
   id: string;
@@ -47,6 +47,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'needs_review' | 'approved' | 'rejected'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [showPastEvents, setShowPastEvents] = useState<boolean>(false);
   const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -96,31 +97,13 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
 
   // Filter and search logic
   const filteredEvents = useMemo(() => {
-    return events.filter(e => {
-      // Status/Filter mode
-      if (filterMode === 'needs_review' && !isNeedsReview(e)) return false;
-      if (filterMode === 'approved' && e.status !== 'approved') return false;
-      if (filterMode === 'rejected' && e.status !== 'rejected') return false;
-
-      // Category filter
-      if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
-
-      // Search query
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchesTitle = e.title?.toLowerCase().includes(q);
-        const matchesLoc = e.location?.toLowerCase().includes(q);
-        const matchesCategory = e.category?.toLowerCase().includes(q);
-        const matchesSource = e.source?.handle?.toLowerCase().includes(q);
-        const matchesDesc = e.description?.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesLoc && !matchesCategory && !matchesSource && !matchesDesc) {
-          return false;
-        }
-      }
-
-      return true;
+    return filterAdminEvents(events, {
+      filterMode,
+      categoryFilter,
+      searchQuery,
+      showPastEvents,
     });
-  }, [events, filterMode, categoryFilter, searchQuery]);
+  }, [events, filterMode, categoryFilter, searchQuery, showPastEvents]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -416,6 +399,23 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
             <option value="festival">Festival</option>
             <option value="other">Other</option>
           </select>
+
+          <button
+            type="button"
+            onClick={() => setShowPastEvents(prev => !prev)}
+            className={`px-3 py-2 rounded-xl text-xs border outline-none font-semibold transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              showPastEvents
+                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border-amber-500/40 shadow-sm'
+                : `${activeTheme.cardAlt || 'bg-slate-900'} ${activeTheme.textMuted || 'text-slate-400'} border-slate-700/50 hover:text-slate-200`
+            }`}
+            title={
+              showPastEvents
+                ? 'Currently showing all events including past ones (click to hide past)'
+                : 'Currently showing active events only (click to show all)'
+            }
+          >
+            <span>{showPastEvents ? '⏳ Showing All Events' : '✨ Active Events Only'}</span>
+          </button>
         </div>
       </div>
 
@@ -424,6 +424,7 @@ export default function EventsManager({ activeTheme, onRefreshNeeded }: EventsMa
         <div className={`px-6 py-4 border-b flex items-center justify-between ${activeTheme.border || 'border-slate-800/60'}`}>
           <h3 className={`text-sm font-bold ${activeTheme.textHeading}`}>
             Showing {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
+            {!showPastEvents && ' (Active only)'}
           </h3>
           {filterMode === 'needs_review' && (
             <span className="text-[11px] text-amber-500 dark:text-amber-400 font-bold">
