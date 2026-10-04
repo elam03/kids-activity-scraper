@@ -49,6 +49,7 @@ model Event {
   longitude       Float?
   likes           Int      @default(0)
   feedbacks       EventFeedback[]
+  bookmarks       Bookmark[]
   submissionId    String?
   submission      UrlSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
   sources         EventSource[]
@@ -66,9 +67,12 @@ model EventFeedback {
   type      String   // "like" | "report_inaccurate"
   reason    String?  // "wrong_date" | "wrong_location" | "cancelled" | "pricing_age" | "other"
   comment   String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
 
   @@index([eventId])
+  @@index([userId])
 }
 
 model UrlSubmission {
@@ -107,6 +111,35 @@ model EventSource {
   @@index([eventId])
   @@index([sourceId])
   @@index([submissionId])
+}
+
+model User {
+  id        String          @id @default(uuid())
+  email     String          @unique
+  googleId  String          @unique
+  name      String?
+  image     String?
+  role      String          @default("parent") // parent | admin
+  bookmarks Bookmark[]
+  feedbacks EventFeedback[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([email])
+  @@index([googleId])
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@index([userId])
+  @@index([eventId])
 }
 
 

@@ -17,6 +17,8 @@ export interface EventDetailModalProps {
   isFromDayModal: boolean;
   onClose: () => void;
   onBackToDay: () => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: (eventId: string) => void;
 }
 
 export default function EventDetailModal({
@@ -26,6 +28,8 @@ export default function EventDetailModal({
   isFromDayModal,
   onClose,
   onBackToDay,
+  isBookmarked = false,
+  onToggleBookmark,
 }: EventDetailModalProps) {
   useBodyScrollLock();
   const verification = getEventVerificationInfo(event);
@@ -41,14 +45,31 @@ export default function EventDetailModal({
         className={`w-full max-w-xl rounded-2xl border p-4 sm:p-6 relative animate-in fade-in zoom-in duration-200 ${activeTheme.modal} max-h-[90vh] flex flex-col overflow-hidden overscroll-contain`}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={onClose}
-          className={`absolute top-4 right-4 p-2 rounded-lg transition ${activeTheme.closeBtn}`}
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+        <div className="absolute top-4 right-4 flex items-center gap-1 z-10">
+          {onToggleBookmark && (
+            <button
+              onClick={() => onToggleBookmark(event.id)}
+              className={`p-1.5 rounded-lg transition ${
+                isBookmarked
+                  ? 'text-amber-400 bg-amber-400/20 border border-amber-400/30'
+                  : `${activeTheme.closeBtn} opacity-75 hover:opacity-100`
+              }`}
+              title={isBookmarked ? 'Saved to bookmarks' : 'Save event'}
+              type="button"
+            >
+              <span className="text-base leading-none">{isBookmarked ? '★' : '☆'}</span>
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className={`p-2 rounded-lg transition ${activeTheme.closeBtn}`}
+            type="button"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
         <div className="flex-shrink-0 pr-8">
           <div className="flex items-center justify-between gap-2 mb-2 pr-6">

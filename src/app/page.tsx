@@ -21,6 +21,10 @@ import OngoingProgramsList from '@/components/calendar/OngoingProgramsList';
 import EventDetailModal from '@/components/calendar/EventDetailModal';
 import DayDetailModal from '@/components/calendar/DayDetailModal';
 import AboutModal from '@/components/AboutModal';
+import UserMenu from '@/components/auth/UserMenu';
+import GoogleOneTap from '@/components/auth/GoogleOneTap';
+import { toggleBookmarkState } from '@/lib/bookmark-utils';
+import type { SessionUser } from '@/lib/auth';
 
 // Dynamically import MapView client-side only to prevent SSR conflicts with Leaflet
 const MapView = dynamicNext(() => import('@/components/MapView'), {
@@ -147,6 +151,89 @@ export default function CalendarHome() {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Auth & Bookmarks State
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [bookmarkedEventIds, setBookmarkedEventIds] = useState<string[]>([]);
+  const [isSavedFilterActive, setIsSavedFilterActive] = useState(false);
+
+  useEffect(() => {
+    try {
+      const local = localStorage.getItem('local-bookmarks');
+      if (local) {
+        setBookmarkedEventIds(JSON.parse(local));
+      }
+    } catch {}
+
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUser(data.user);
+            const bRes = await fetch('/api/bookmarks');
+            if (bRes.ok) {
+              const bData = await bRes.json();
+              if (Array.isArray(bData.eventIds)) {
+                setBookmarkedEventIds(bData.eventIds);
+                try {
+                  localStorage.setItem('local-bookmarks', JSON.stringify(bData.eventIds));
+                } catch {}
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load session:', err);
+      }
+    }
+    checkAuth();
+  }, []);
+
+  const handleAuthSuccess = (newUser: SessionUser) => {
+    setUser(newUser);
+    fetch('/api/bookmarks')
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.eventIds)) {
+          setBookmarkedEventIds(d.eventIds);
+          try {
+            localStorage.setItem('local-bookmarks', JSON.stringify(d.eventIds));
+          } catch {}
+        }
+      })
+      .catch(() => {});
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
+    setUser(null);
+    setIsSavedFilterActive(false);
+  };
+
+  const handleToggleBookmark = (eventId: string) => {
+    const isCurrentlySaved = bookmarkedEventIds.includes(eventId);
+    const updated = toggleBookmarkState(eventId, bookmarkedEventIds);
+    setBookmarkedEventIds(updated);
+    try {
+      localStorage.setItem('local-bookmarks', JSON.stringify(updated));
+    } catch {}
+
+    if (user) {
+      if (isCurrentlySaved) {
+        fetch(`/api/bookmarks?eventId=${eventId}`, { method: 'DELETE' }).catch(() => {});
+      } else {
+        fetch('/api/bookmarks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventId }),
+        }).catch(() => {});
+      }
+    }
+  };
+
   // Filter States
   const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>(['all']);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -202,13 +289,17 @@ export default function CalendarHome() {
   }, [selectedEvent, selectedDateForDetails]);
 
   // Deep Calendar Query hook
+  const displayedEvents = isSavedFilterActive
+    ? events.filter((e) => bookmarkedEventIds.includes(e.id))
+    : events;
+
   const {
     filteredEvents,
     weekDates,
     monthDates,
     activeMultiDayEvents,
     getEventsForDate,
-  } = useCalendarQuery(events, {
+  } = useCalendarQuery(displayedEvents, {
     viewMode,
     currentPivotDate,
     selectedAgeGroups,
@@ -331,6 +422,20 @@ export default function CalendarHome() {
               <span>⚡</span>
               <span>Lean View</span>
             </a>
+
+            <UserMenu
+              user={user}
+              onSignIn={() => {
+                if (window.google?.accounts?.id) {
+                  window.google.accounts.id.prompt();
+                }
+              }}
+              onSignOut={handleSignOut}
+              bookmarkCount={bookmarkedEventIds.length}
+              isSavedFilterActive={isSavedFilterActive}
+              onToggleSavedFilter={() => setIsSavedFilterActive((prev) => !prev)}
+              themeClasses={activeTheme}
+            />
 
             <a
               href="/admin"
@@ -554,6 +659,8 @@ export default function CalendarHome() {
           categoryColors={categoryColors}
           activeTheme={activeTheme}
           isFromDayModal={Boolean(selectedDateForDetails)}
+          isBookmarked={bookmarkedEventIds.includes(selectedEvent.id)}
+          onToggleBookmark={handleToggleBookmark}
           onClose={() => {
             setSelectedEvent(null);
             setSelectedDateForDetails(null);
@@ -561,6 +668,9 @@ export default function CalendarHome() {
           onBackToDay={() => setSelectedEvent(null)}
         />
       )}
+
+      {/* Google One Tap floating authentication */}
+      <GoogleOneTap user={user} onAuthSuccess={handleAuthSuccess} />
     </div>
   );
 }
