@@ -329,8 +329,14 @@ export default function CalendarHome() {
         {/* Header bar */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-500 shadow-lg shadow-violet-500/20 shrink-0">
-              <span className="text-xl sm:text-2xl">✨</span>
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl overflow-hidden shadow-lg shadow-violet-500/20 shrink-0 border border-violet-500/30 bg-slate-900">
+              <img
+                src="/logo-120.png"
+                alt="Little Days Out"
+                width={48}
+                height={48}
+                className="h-full w-full object-cover"
+              />
             </div>
             <div>
               <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${activeTheme.headerText}`}>
@@ -638,6 +644,20 @@ export default function CalendarHome() {
             >
               <span>⚡</span>
               <span>Lean View</span>
+            </a>
+            <a
+              href="/privacy"
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition font-medium"
+            >
+              <span>🔒</span>
+              <span>Privacy</span>
+            </a>
+            <a
+              href="/terms"
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition font-medium"
+            >
+              <span>📜</span>
+              <span>Terms</span>
             </a>
             <a
               href={KOFI_DONATION_URL}

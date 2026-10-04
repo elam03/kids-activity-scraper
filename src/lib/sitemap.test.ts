@@ -23,6 +23,15 @@ test('buildDynamicSitemapEntries generates static, category, and age facet URLs'
   assert.equal(root.priority, 1.0);
   assert.equal(root.changeFrequency, 'daily');
 
+  // Legal pages
+  const privacy = entries.find((e) => e.url === `${SITE_URL}/privacy`);
+  assert.ok(privacy, 'Privacy policy must exist in sitemap');
+  assert.equal(privacy.priority, 0.3);
+
+  const terms = entries.find((e) => e.url === `${SITE_URL}/terms`);
+  assert.ok(terms, 'Terms of service must exist in sitemap');
+  assert.equal(terms.priority, 0.3);
+
   // Category facets
   const festivalCategory = entries.find((e) => e.url === `${SITE_URL}/?category=festival`);
   assert.ok(festivalCategory, 'Category facet must exist');

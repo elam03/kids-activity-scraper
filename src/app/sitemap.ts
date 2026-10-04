@@ -37,13 +37,25 @@ export function buildDynamicSitemapEntries(
 ): MetadataRoute.Sitemap {
   const normalizedBase = baseUrl.replace(/\/$/, '');
 
-  // 1. Root Homepage
+  // 1. Root Homepage & Legal Pages
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: normalizedBase,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1.0,
+    },
+    {
+      url: `${normalizedBase}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
+    },
+    {
+      url: `${normalizedBase}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.3,
     },
   ];
 
