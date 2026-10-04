@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import dynamicNext from 'next/dynamic';
 import EventFeedbackButtons from '@/components/EventFeedbackButtons';
 import type { CalendarEvent } from '@/lib/calendar-query';
 import { useBodyScrollLock } from '@/lib/modal-scroll-lock';
 import { getEventVerificationInfo } from '@/lib/event-utils';
+import { analytics } from '@/lib/analytics';
 
 const EventMiniMap = dynamicNext(() => import('@/components/EventMiniMap'), {
   ssr: false,
@@ -33,6 +35,15 @@ export default function EventDetailModal({
 }: EventDetailModalProps) {
   useBodyScrollLock();
   const verification = getEventVerificationInfo(event);
+
+  useEffect(() => {
+    analytics.viewEventDetail({
+      id: event.id,
+      title: event.title,
+      category: event.category,
+      isFree: event.isFree,
+    });
+  }, [event.id, event.title, event.category, event.isFree]);
 
   return (
     <div
@@ -220,6 +231,7 @@ export default function EventDetailModal({
               href={event.rawPostUrl}
               target="_blank"
               rel="noreferrer"
+              onClick={() => analytics.clickOutboundSource(event.id, event.source?.handle)}
               className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 underline"
             >
               View Original Instagram Post
@@ -231,6 +243,7 @@ export default function EventDetailModal({
                 href={event.rawPostUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => analytics.clickOutboundSource(event.id, event.source?.handle)}
                 className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 underline"
               >
                 View post
@@ -241,6 +254,7 @@ export default function EventDetailModal({
                 href={event.registrationUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => analytics.clickOutboundTicket(event.id, event.registrationUrl!)}
                 className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white transition active:scale-[0.98]"
               >
                 Register / Sign Up

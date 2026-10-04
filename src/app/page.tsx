@@ -25,6 +25,7 @@ import UserMenu from '@/components/auth/UserMenu';
 import GoogleOneTap from '@/components/auth/GoogleOneTap';
 import { toggleBookmarkState } from '@/lib/bookmark-utils';
 import type { SessionUser } from '@/lib/auth';
+import { analytics } from '@/lib/analytics';
 
 // Dynamically import MapView client-side only to prevent SSR conflicts with Leaflet
 const MapView = dynamicNext(() => import('@/components/MapView'), {
@@ -215,6 +216,8 @@ export default function CalendarHome() {
 
   const handleToggleBookmark = (eventId: string) => {
     const isCurrentlySaved = bookmarkedEventIds.includes(eventId);
+    const nextSaved = !isCurrentlySaved;
+    analytics.bookmarkEvent(eventId, nextSaved);
     const updated = toggleBookmarkState(eventId, bookmarkedEventIds);
     setBookmarkedEventIds(updated);
     try {
@@ -239,6 +242,8 @@ export default function CalendarHome() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const handleToggleAgeGroup = (groupId: string) => {
+    const willSelect = !selectedAgeGroups.includes(groupId);
+    analytics.filterAgeGroup(groupId, willSelect);
     setSelectedAgeGroups((prev) => toggleAgeGroup(prev, groupId));
   };
 
@@ -369,7 +374,10 @@ export default function CalendarHome() {
             {/* View Selectors */}
             <div className={`inline-flex rounded-xl p-0.5 ${activeTheme.viewSelectBg}`}>
               <button
-                onClick={() => setViewMode('day')}
+                onClick={() => {
+                  setViewMode('day');
+                  analytics.toggleViewMode('day');
+                }}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                   viewMode === 'day' ? activeTheme.activeTab : activeTheme.inactiveTab
                 }`}
@@ -377,7 +385,10 @@ export default function CalendarHome() {
                 Day
               </button>
               <button
-                onClick={() => setViewMode('month')}
+                onClick={() => {
+                  setViewMode('month');
+                  analytics.toggleViewMode('month');
+                }}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                   viewMode === 'month' ? activeTheme.activeTab : activeTheme.inactiveTab
                 }`}
@@ -385,7 +396,10 @@ export default function CalendarHome() {
                 Month
               </button>
               <button
-                onClick={() => setViewMode('map')}
+                onClick={() => {
+                  setViewMode('map');
+                  analytics.toggleViewMode('map');
+                }}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
                   viewMode === 'map' ? activeTheme.activeTab : activeTheme.inactiveTab
                 }`}
@@ -398,6 +412,7 @@ export default function CalendarHome() {
               href={KOFI_DONATION_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => analytics.clickKofiTip('header')}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-semibold border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 transition active:scale-95 shadow-sm"
               title="Support this project on Ko-fi"
             >
@@ -484,7 +499,11 @@ export default function CalendarHome() {
               </label>
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => {
+                  const cat = e.target.value;
+                  setSelectedCategory(cat);
+                  analytics.filterCategory(cat);
+                }}
                 className={`rounded-xl border px-3 py-1.5 text-xs outline-none transition w-full sm:w-auto sm:max-w-[180px] cursor-pointer ${activeTheme.input}`}
               >
                 <option value="all">✨ All Categories</option>
@@ -624,6 +643,7 @@ export default function CalendarHome() {
               href={KOFI_DONATION_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => analytics.clickKofiTip('footer')}
               className="inline-flex items-center gap-1.5 text-slate-400 hover:text-rose-400 transition font-medium"
               title="Support this project on Ko-fi"
             >
