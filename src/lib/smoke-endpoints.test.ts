@@ -45,6 +45,7 @@ test('Smoke Test 4: Static public icon assets exist on filesystem', () => {
     'icon-192.png',
     'apple-icon.png',
     'apple-touch-icon.png',
+    'og-image.png',
   ];
 
   for (const asset of requiredAssets) {

@@ -9,7 +9,10 @@ import {
   SITE_DESCRIPTION,
   buildWebSiteJsonLd,
   getSiteIcons,
+  getSocialImageConfig,
+  getGoogleVerificationCode,
 } from '@/lib/seo-utils';
+import { getUpcomingEventsStructuredData } from '@/lib/seo-server';
 
 const outfit = Outfit({ subsets: ['latin'] });
 
@@ -44,11 +47,16 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: 'en_US',
     type: 'website',
+    images: [getSocialImageConfig(SITE_URL)],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} | Kids Activities & Family Events in SF Bay Area`,
     description: SITE_DESCRIPTION,
+    images: [`${SITE_URL}/og-image.png`],
+  },
+  verification: {
+    google: getGoogleVerificationCode(),
   },
   robots: {
     index: true,
@@ -63,13 +71,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const gaId = resolveGaMeasurementId(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
   const websiteJsonLd = buildWebSiteJsonLd();
+  const eventListJsonLd = await getUpcomingEventsStructuredData();
 
   return (
     <html lang="en" className="h-full">
@@ -78,6 +87,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
+        {eventListJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(eventListJsonLd) }}
+          />
+        )}
       </head>
       <body className={`${outfit.className} min-h-screen antialiased`}>
         {gaId && (

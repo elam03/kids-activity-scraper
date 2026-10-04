@@ -11,6 +11,12 @@ export function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL?.trim() || SITE_URL;
 }
 
+export interface SeoEventSource {
+  name: string;
+  handle?: string | null;
+  url?: string | null;
+}
+
 export interface SeoEvent {
   id: string;
   title: string;
@@ -23,6 +29,9 @@ export interface SeoEvent {
   cost?: string | null;
   isFree?: boolean;
   registrationUrl?: string | null;
+  rawCaption?: string | null;
+  rawPostUrl?: string | null;
+  source?: SeoEventSource | null;
 }
 
 /**
@@ -58,11 +67,29 @@ export function buildEventJsonLd(event: SeoEvent) {
       : event.endDate
     : undefined;
 
+  const organizer = event.source
+    ? {
+        '@type': 'Organization',
+        name: event.source.name,
+        url: event.source.url
+          ? event.source.url
+          : event.source.handle
+          ? (event.source.handle.startsWith('http')
+              ? event.source.handle
+              : `https://instagram.com/${event.source.handle.replace(/^@/, '')}`)
+          : undefined,
+      }
+    : undefined;
+
+  const description =
+    event.description ||
+    (event.rawCaption ? event.rawCaption.slice(0, 300).trim() : event.title);
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.title,
-    description: event.description || event.title,
+    description,
     startDate: startDateTime,
     ...(endDateTime ? { endDate: endDateTime } : {}),
     eventStatus: 'https://schema.org/EventScheduled',
@@ -78,17 +105,33 @@ export function buildEventJsonLd(event: SeoEvent) {
         addressCountry: 'US',
       },
     },
-    ...(event.cost
+    ...(organizer ? { organizer } : {}),
+    ...(event.cost || event.isFree
       ? {
           offers: {
             '@type': 'Offer',
-            price: event.isFree ? '0' : event.cost,
+            price: event.isFree ? '0' : event.cost || '0',
             priceCurrency: 'USD',
-            url: event.registrationUrl || getSiteUrl(),
+            url: event.registrationUrl || event.rawPostUrl || getSiteUrl(),
             availability: 'https://schema.org/InStock',
           },
         }
       : {}),
+  };
+}
+
+/**
+ * Builds Schema.org ItemList JSON-LD structured data for Google carousel indexing.
+ */
+export function buildEventListJsonLd(events: SeoEvent[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: events.map((event, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      item: buildEventJsonLd(event),
+    })),
   };
 }
 
@@ -113,5 +156,34 @@ export function getSiteIcons(): SiteIconConfig {
     ],
     shortcut: '/favicon.ico',
   };
+}
+
+export interface SocialImageConfig {
+  url: string;
+  width: number;
+  height: number;
+  alt: string;
+  type: string;
+}
+
+/**
+ * Returns standard 1200x630 OpenGraph / Twitter social image configuration.
+ */
+export function getSocialImageConfig(siteUrl: string = getSiteUrl()): SocialImageConfig {
+  return {
+    url: `${siteUrl}/og-image.png`,
+    width: 1200,
+    height: 630,
+    alt: `${SITE_NAME} - Curated Kids Activities & Family Events in SF Bay Area`,
+    type: 'image/png',
+  };
+}
+
+/**
+ * Resolves Google Search Console site verification code from environment variables.
+ */
+export function getGoogleVerificationCode(): string | undefined {
+  const code = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim();
+  return code ? code : undefined;
 }
 
