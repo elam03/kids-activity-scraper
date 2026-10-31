@@ -4,6 +4,12 @@ import { scrapeInstagramAccount } from '@/lib/apify';
 import { ingestEvent } from '@/lib/event-ingestion';
 import { buildPastEventsPruneWhere } from '@/lib/event-utils';
 import { processUrlSubmission } from '@/lib/url-submission-processor';
+import { recordIngestionRun, getPipelineHealthSummary } from '@/lib/pipeline-monitor';
+import {
+  dispatchAlert,
+  buildScraperFailureAlert,
+  buildWeeklyBriefingPayload,
+} from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,6 +113,7 @@ async function handleCronTrigger(request: Request) {
       let scrapedCount = 0;
       let processedCount = 0;
       let skippedCount = 0;
+      const scrapeStartTime = Date.now();
 
       try {
         // Scrape latest 5 posts by default for cron jobs
@@ -141,6 +148,20 @@ async function handleCronTrigger(request: Request) {
           },
         });
 
+        const durationMs = Date.now() - scrapeStartTime;
+        recordIngestionRun({
+          id: `cron-${source.handle}-${Date.now()}`,
+          trigger: 'cron',
+          sourceHandle: source.handle,
+          startedAt: new Date(scrapeStartTime).toISOString(),
+          completedAt: new Date().toISOString(),
+          durationMs,
+          status: 'success',
+          postsScraped: scrapedCount,
+          eventsCreated: processedCount,
+          eventsSkipped: skippedCount,
+        });
+
         report.push({
           source: source.handle,
           scraped: true,
@@ -152,6 +173,26 @@ async function handleCronTrigger(request: Request) {
         });
       } catch (err) {
         console.error(`Cron scrape failed for @${source.handle}:`, err);
+        const durationMs = Date.now() - scrapeStartTime;
+        recordIngestionRun({
+          id: `cron-${source.handle}-${Date.now()}`,
+          trigger: 'cron',
+          sourceHandle: source.handle,
+          startedAt: new Date(scrapeStartTime).toISOString(),
+          completedAt: new Date().toISOString(),
+          durationMs,
+          status: 'failed',
+          postsScraped: scrapedCount,
+          eventsCreated: processedCount,
+          eventsSkipped: skippedCount,
+          error: (err as Error).message,
+        });
+
+        // Dispatch high-priority alert to Discord & Email on scraper failure
+        dispatchAlert(buildScraperFailureAlert(source.handle, (err as Error).message, 1)).catch((e) =>
+          console.error(`Failed to dispatch scraper failure alert for @${source.handle}:`, e)
+        );
+
         report.push({
           source: source.handle,
           scraped: true,
@@ -198,10 +239,44 @@ async function handleCronTrigger(request: Request) {
       }
     }
 
+    // 5. Send Weekly Discord Briefing if requested or on Thursday morning run (day 4)
+    const isBriefingRequested = searchParams.get('briefing') === 'true';
+    const isThursday = now.getDay() === 4;
+    let briefingDispatched = false;
+
+    if (isBriefingRequested || (isThursday && now.getHours() >= 14 && now.getHours() <= 17)) {
+      try {
+        const summary = await getPipelineHealthSummary({ db: prisma, now });
+        const pendingEvents = await prisma.event.findMany({
+          where: { status: 'pending' },
+          select: { title: true, startDate: true, location: true },
+          take: 3,
+        });
+
+        const briefingPayload = buildWeeklyBriefingPayload({
+          activeEventsCount: summary.events.upcomingApproved,
+          pendingReviewCount: summary.events.pendingReview,
+          averageAccuracy: summary.quality.averageScore,
+          helpfulnessRatio: summary.community.helpfulnessRatio,
+          pendingItems: pendingEvents.map((e) => ({
+            title: e.title,
+            date: e.startDate,
+            location: e.location,
+          })),
+        });
+
+        await dispatchAlert(briefingPayload);
+        briefingDispatched = true;
+      } catch (briefingErr) {
+        console.error('Failed to dispatch Thursday weekly briefing:', briefingErr);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       report,
       submissionsReport,
+      briefingDispatched,
     });
   } catch (error) {
     return NextResponse.json(

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { scrapeInstagramAccount } from '@/lib/apify';
 import { ingestEvent } from '@/lib/event-ingestion';
+import { recordIngestionRun } from '@/lib/pipeline-monitor';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       let scrapedCount = 0;
       let processedCount = 0;
       let skippedCount = 0;
+      const scrapeStartTime = Date.now();
 
       try {
         // Scrape posts (using dynamic limit)
@@ -75,6 +77,20 @@ export async function POST(request: Request) {
           data: { lastScrapedAt: new Date() }
         });
 
+        const durationMs = Date.now() - scrapeStartTime;
+        recordIngestionRun({
+          id: `manual-${source.handle}-${Date.now()}`,
+          trigger: 'manual',
+          sourceHandle: source.handle,
+          startedAt: new Date(scrapeStartTime).toISOString(),
+          completedAt: new Date().toISOString(),
+          durationMs,
+          status: 'success',
+          postsScraped: scrapedCount,
+          eventsCreated: processedCount,
+          eventsSkipped: skippedCount,
+        });
+
         report.push({
           source: source.handle,
           scrapedCount,
@@ -83,6 +99,21 @@ export async function POST(request: Request) {
         });
       } catch (err) {
         console.error(`Error ingesting source ${source.handle}:`, err);
+        const durationMs = Date.now() - scrapeStartTime;
+        recordIngestionRun({
+          id: `manual-${source.handle}-${Date.now()}`,
+          trigger: 'manual',
+          sourceHandle: source.handle,
+          startedAt: new Date(scrapeStartTime).toISOString(),
+          completedAt: new Date().toISOString(),
+          durationMs,
+          status: 'failed',
+          postsScraped: scrapedCount,
+          eventsCreated: processedCount,
+          eventsSkipped: skippedCount,
+          error: (err as Error).message,
+        });
+
         report.push({
           source: source.handle,
           scrapedCount,

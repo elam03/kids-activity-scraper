@@ -7,6 +7,7 @@ import {
   sanitizeText,
   isAllowedOrigin,
 } from '@/lib/security-utils';
+import { dispatchAlert, buildParentComplaintAlert } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -134,6 +135,14 @@ export async function POST(request: Request) {
           comment: sanitizedComment,
         }
       });
+
+      // Dispatch high-priority alert to Discord & Email asynchronously
+      dispatchAlert(
+        buildParentComplaintAlert(
+          { id: event.id, title: event.title, startDate: event.startDate },
+          { type: 'report_inaccurate', reason, comment: sanitizedComment }
+        )
+      ).catch((err) => console.error('Failed to dispatch parent complaint alert:', err));
 
       return NextResponse.json({
         success: true,

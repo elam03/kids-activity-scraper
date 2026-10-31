@@ -6,6 +6,7 @@ import FlyerUpload from '@/components/FlyerUpload';
 import EventsManager from '@/components/EventsManager';
 import SourcesManager from '@/components/SourcesManager';
 import UrlIngestionManager from '@/components/UrlIngestionManager';
+import MonitoringDashboard from '@/components/admin/MonitoringDashboard';
 import {
   DEFAULT_CALENDAR_THEME,
   resolveCalendarTheme,
@@ -112,7 +113,7 @@ const themeClasses: Record<string, any> = {
 };
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'sources' | 'url_ingestion' | 'upload' | 'events'>('sources');
+  const [activeTab, setActiveTab] = useState<'monitoring' | 'sources' | 'url_ingestion' | 'upload' | 'events'>('monitoring');
   const [theme, setTheme] = useState<CalendarThemeName>(DEFAULT_CALENDAR_THEME);
   const [pendingCount, setPendingCount] = useState<number>(0);
 
@@ -201,6 +202,14 @@ export default function AdminDashboard() {
       <div className={`border-b ${activeTheme.border} bg-slate-950/10 mb-6`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex gap-6 overflow-x-auto">
           <button
+            onClick={() => setActiveTab('monitoring')}
+            className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'monitoring' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
+            }`}
+          >
+            <span>📊 Health & Monitoring</span>
+          </button>
+          <button
             onClick={() => setActiveTab('sources')}
             className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap ${
               activeTab === 'sources' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
@@ -241,6 +250,12 @@ export default function AdminDashboard() {
       </div>
 
       <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 pb-12">
+        {activeTab === 'monitoring' && (
+          <MonitoringDashboard
+            activeTheme={activeTheme}
+            onNavigateToTab={(tab) => setActiveTab(tab)}
+          />
+        )}
         {activeTab === 'sources' && <SourcesManager activeTheme={activeTheme} />}
         {activeTab === 'url_ingestion' && (
           <UrlIngestionManager activeTheme={activeTheme} onRefreshNeeded={fetchPendingCount} />
