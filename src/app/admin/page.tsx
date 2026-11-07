@@ -7,6 +7,7 @@ import EventsManager from '@/components/EventsManager';
 import SourcesManager from '@/components/SourcesManager';
 import UrlIngestionManager from '@/components/UrlIngestionManager';
 import MonitoringDashboard from '@/components/admin/MonitoringDashboard';
+import TrafficAnalyticsView from '@/components/admin/TrafficAnalyticsView';
 import {
   DEFAULT_CALENDAR_THEME,
   resolveCalendarTheme,
@@ -113,7 +114,7 @@ const themeClasses: Record<string, any> = {
 };
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'monitoring' | 'sources' | 'url_ingestion' | 'upload' | 'events'>('monitoring');
+  const [activeTab, setActiveTab] = useState<'monitoring' | 'analytics' | 'sources' | 'url_ingestion' | 'upload' | 'events'>('monitoring');
   const [theme, setTheme] = useState<CalendarThemeName>(DEFAULT_CALENDAR_THEME);
   const [pendingCount, setPendingCount] = useState<number>(0);
 
@@ -210,6 +211,14 @@ export default function AdminDashboard() {
             <span>📊 Health & Monitoring</span>
           </button>
           <button
+            onClick={() => setActiveTab('analytics')}
+            className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap flex items-center gap-2 ${
+              activeTab === 'analytics' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
+            }`}
+          >
+            <span>📈 Traffic & Analytics</span>
+          </button>
+          <button
             onClick={() => setActiveTab('sources')}
             className={`py-4 text-sm font-semibold border-b-2 transition whitespace-nowrap ${
               activeTab === 'sources' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
@@ -256,6 +265,7 @@ export default function AdminDashboard() {
             onNavigateToTab={(tab) => setActiveTab(tab)}
           />
         )}
+        {activeTab === 'analytics' && <TrafficAnalyticsView activeTheme={activeTheme} />}
         {activeTab === 'sources' && <SourcesManager activeTheme={activeTheme} />}
         {activeTab === 'url_ingestion' && (
           <UrlIngestionManager activeTheme={activeTheme} onRefreshNeeded={fetchPendingCount} />

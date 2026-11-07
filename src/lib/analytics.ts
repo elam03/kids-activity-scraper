@@ -12,13 +12,13 @@ export type AnalyticsParamValue = string | number | boolean | undefined | null;
 
 /**
  * Dispatches a typed custom event to Google Analytics 4.
- * SSR-safe: Returns silently if window or window.gtag is not available.
+ * SSR-safe: Returns silently if window is not available.
  */
 export function trackAnalyticsEvent(
   eventName: string,
   params?: Record<string, AnalyticsParamValue>
 ) {
-  if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
+  if (typeof window === 'undefined') {
     return;
   }
 
@@ -32,7 +32,33 @@ export function trackAnalyticsEvent(
     }
   }
 
-  window.gtag('event', eventName, cleanParams);
+  // 1. Google Analytics 4 (if loaded and active)
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', eventName, cleanParams);
+  }
+
+  // 2. First-party intent telemetry (ad-blocker resilient)
+  try {
+    const payload = JSON.stringify({
+      eventName,
+      params: cleanParams,
+      timestamp: Date.now(),
+      path: typeof window !== 'undefined' && window.location ? window.location.pathname : '/',
+    });
+
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      navigator.sendBeacon('/api/analytics/collect', payload);
+    } else if (typeof fetch === 'function') {
+      fetch('/api/analytics/collect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+  } catch {
+    // Non-blocking telemetry
+  }
 }
 
 export interface ViewEventDetailPayload {
