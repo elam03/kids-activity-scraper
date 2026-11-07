@@ -75,7 +75,59 @@ export function buildDynamicSitemapEntries(
     priority: 0.8,
   }));
 
-  // 4. Upcoming Active Events
+  // 4. Programmatic SEO Landing Pages (Pillars 1 & 3)
+  const programmaticLandingRoutes: MetadataRoute.Sitemap = [
+    {
+      url: `${normalizedBase}/free-this-weekend`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${normalizedBase}/toddlers`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${normalizedBase}/indoor-activities`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${normalizedBase}/locations/san-francisco`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${normalizedBase}/locations/south-bay`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${normalizedBase}/locations/peninsula`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${normalizedBase}/locations/east-bay`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: `${normalizedBase}/curators`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+  ];
+
+  // 5. Upcoming Active Events
   const eventRoutes: MetadataRoute.Sitemap = events.map((event) => ({
     url: `${normalizedBase}/?event=${event.id}`,
     lastModified: event.updatedAt,
@@ -83,7 +135,13 @@ export function buildDynamicSitemapEntries(
     priority: 0.7,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...ageGroupRoutes, ...eventRoutes];
+  return [
+    ...staticRoutes,
+    ...programmaticLandingRoutes,
+    ...categoryRoutes,
+    ...ageGroupRoutes,
+    ...eventRoutes,
+  ];
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

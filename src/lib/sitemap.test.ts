@@ -32,6 +32,24 @@ test('buildDynamicSitemapEntries generates static, category, and age facet URLs'
   assert.ok(terms, 'Terms of service must exist in sitemap');
   assert.equal(terms.priority, 0.3);
 
+  // Programmatic landing pages
+  const freeWeekend = entries.find((e) => e.url === `${SITE_URL}/free-this-weekend`);
+  assert.ok(freeWeekend, 'Free this weekend landing page must exist');
+  assert.equal(freeWeekend.priority, 0.9);
+  assert.equal(freeWeekend.changeFrequency, 'daily');
+
+  const toddlersGuide = entries.find((e) => e.url === `${SITE_URL}/toddlers`);
+  assert.ok(toddlersGuide, 'Toddlers landing page must exist');
+  assert.equal(toddlersGuide.priority, 0.9);
+
+  const southBay = entries.find((e) => e.url === `${SITE_URL}/locations/south-bay`);
+  assert.ok(southBay, 'South Bay location landing page must exist');
+  assert.equal(southBay.priority, 0.9);
+
+  const curatorsDir = entries.find((e) => e.url === `${SITE_URL}/curators`);
+  assert.ok(curatorsDir, 'Curators directory must exist in sitemap');
+  assert.equal(curatorsDir.priority, 0.9);
+
   // Category facets
   const festivalCategory = entries.find((e) => e.url === `${SITE_URL}/?category=festival`);
   assert.ok(festivalCategory, 'Category facet must exist');

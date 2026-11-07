@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { PipelineHealthSummary, FlaggedEventItem, IngestionRunRecord, SourceStatusItem } from '@/lib/pipeline-monitor';
+import CreatorOutreachKit from '@/components/admin/CreatorOutreachKit';
 
 interface MonitoringDashboardProps {
   activeTheme: any;
@@ -16,7 +17,7 @@ export default function MonitoringDashboard({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'quality' | 'sources' | 'runs' | 'alerts'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'quality' | 'sources' | 'runs' | 'alerts' | 'outreach'>('overview');
   const [flagFilter, setFlagFilter] = useState<string>('all');
   const [testingAlert, setTestingAlert] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -334,6 +335,14 @@ export default function MonitoringDashboard({
           }`}
         >
           🔔 Notification Channels & Alerts
+        </button>
+        <button
+          onClick={() => setActiveSubTab('outreach')}
+          className={`py-3 border-b-2 transition whitespace-nowrap ${
+            activeSubTab === 'outreach' ? activeTheme.activeSubTab : activeTheme.inactiveSubTab
+          }`}
+        >
+          🤝 Creator Outreach Kit
         </button>
       </div>
 
@@ -786,6 +795,9 @@ export default function MonitoringDashboard({
           </div>
         </div>
       )}
+
+      {/* SUB-VIEW 5: Creator Outreach Kit */}
+      {activeSubTab === 'outreach' && <CreatorOutreachKit activeTheme={activeTheme} />}
     </div>
   );
 }
