@@ -13,6 +13,11 @@ import {
   type CalendarEvent,
   type CalendarThemeName,
 } from '@/lib/calendar-query';
+import {
+  getTheme,
+  listThemes,
+  isRegisteredTheme,
+} from '@/lib/themes';
 import DayTimelineView from '@/components/calendar/DayTimelineView';
 import MonthGridView from '@/components/calendar/MonthGridView';
 import OngoingProgramsList from '@/components/calendar/OngoingProgramsList';
@@ -40,114 +45,7 @@ const AGE_GROUPS = [
   { id: 'teens', label: 'Teens (13+)', emoji: '🛹' },
 ] as const;
 
-const categoryColors: Record<string, string> = {
-  sports: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  arts: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
-  nature: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
-  music: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  education: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  festival: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  other: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-};
-
-const themeClasses = {
-  cosmo: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 flex flex-col justify-between transition-all duration-300',
-    text: 'text-slate-100',
-    textHeading: 'text-slate-100',
-    textMuted: 'text-slate-400',
-    card: 'bg-slate-900/10 border-slate-900 hover:border-slate-800',
-    cardAlt: 'bg-slate-950/80 border-slate-800 hover:border-slate-700',
-    cardBorder: 'border-slate-900',
-    cardText: 'text-slate-300',
-    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-violet-200 to-indigo-200',
-    navBtn: 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300',
-    badge: 'bg-slate-800 text-slate-300',
-    activeTab: 'bg-violet-600 text-white',
-    inactiveTab: 'text-slate-400 hover:text-slate-200',
-    border: 'border-slate-900',
-    modal: 'bg-slate-900 border-slate-800 text-slate-100',
-    modalTitle: 'text-slate-100 font-bold',
-    modalInner: 'bg-slate-950/60 border-slate-800 text-slate-300',
-    closeBtn: 'text-slate-400 hover:text-slate-200 hover:bg-slate-800',
-    accentText: 'text-violet-400',
-    input: 'border-slate-800 bg-slate-950 text-slate-100 placeholder:text-slate-600 focus:border-violet-500',
-    themePicker: 'bg-slate-900 border border-slate-800',
-    themePickerInactive: 'text-slate-400 hover:text-slate-200',
-    viewSelectBg: 'bg-slate-900 border border-slate-800',
-    chevron: 'border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300',
-    dayHeader: 'text-slate-300',
-    timelineHour: 'text-slate-500',
-    hourBorder: 'border-slate-800/60',
-    weekdayHeader: 'text-slate-400 bg-slate-900/40',
-    monthGridBg: 'bg-slate-900/20',
-    dayNumber: 'text-slate-300',
-  },
-  bubblegum: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-900 flex flex-col justify-between transition-all duration-300',
-    text: 'text-slate-900',
-    textHeading: 'text-purple-950 font-bold',
-    textMuted: 'text-purple-900 font-medium',
-    card: 'bg-white border-purple-200 shadow-md shadow-purple-500/5 hover:border-purple-300',
-    cardAlt: 'bg-purple-50/80 border-purple-200 hover:border-purple-300',
-    cardBorder: 'border-purple-200',
-    cardText: 'text-slate-800 font-medium',
-    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 font-extrabold',
-    navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-purple-900 font-semibold shadow-sm',
-    badge: 'bg-purple-100 text-purple-800 border border-purple-200 font-bold',
-    activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
-    inactiveTab: 'text-purple-700 hover:text-purple-900',
-    border: 'border-purple-200',
-    modal: 'bg-white border-purple-300 text-slate-900 shadow-2xl shadow-purple-500/20',
-    modalTitle: 'text-purple-950 font-bold',
-    modalInner: 'bg-purple-50 border-purple-200 text-purple-950 font-medium',
-    closeBtn: 'text-purple-500 hover:text-purple-700 hover:bg-purple-100/70',
-    accentText: 'text-purple-900 font-bold',
-    input: 'border-purple-200 bg-white text-purple-950 placeholder:text-purple-400 focus:border-purple-500',
-    themePicker: 'bg-white/80 border border-purple-200 shadow-sm',
-    themePickerInactive: 'text-purple-700 hover:text-purple-950',
-    viewSelectBg: 'bg-white border border-purple-200 shadow-sm',
-    chevron: 'border-purple-200 bg-white hover:bg-purple-50 text-purple-900 font-bold shadow-sm',
-    dayHeader: 'text-purple-950 font-extrabold',
-    timelineHour: 'text-purple-700 font-semibold',
-    hourBorder: 'border-purple-200/60',
-    weekdayHeader: 'text-purple-950 bg-purple-100 font-extrabold',
-    monthGridBg: 'bg-white/70',
-    dayNumber: 'text-purple-950 font-bold',
-  },
-  jungle: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 flex flex-col justify-between transition-all duration-300',
-    text: 'text-emerald-950',
-    textHeading: 'text-emerald-950 font-bold',
-    textMuted: 'text-emerald-900 font-medium',
-    card: 'bg-white border-emerald-200 shadow-md shadow-emerald-500/5 hover:border-emerald-300',
-    cardAlt: 'bg-emerald-50/80 border-emerald-200 hover:border-emerald-300',
-    cardBorder: 'border-emerald-200',
-    cardText: 'text-emerald-950 font-medium',
-    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-amber-700 font-extrabold',
-    navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900 font-semibold shadow-sm',
-    badge: 'bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold',
-    activeTab: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20',
-    inactiveTab: 'text-emerald-800 hover:text-emerald-950',
-    border: 'border-emerald-200',
-    modal: 'bg-white border-emerald-300 text-emerald-950 shadow-2xl shadow-emerald-500/20',
-    modalTitle: 'text-emerald-950 font-bold',
-    modalInner: 'bg-emerald-50 border-emerald-200 text-emerald-950 font-medium',
-    closeBtn: 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100/70',
-    accentText: 'text-emerald-900 font-bold',
-    input: 'border-emerald-200 bg-white text-emerald-950 placeholder:text-emerald-500 focus:border-emerald-500',
-    themePicker: 'bg-white/80 border border-emerald-200 shadow-sm',
-    themePickerInactive: 'text-emerald-800 hover:text-emerald-950',
-    viewSelectBg: 'bg-white border border-emerald-200 shadow-sm',
-    chevron: 'border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-900 font-bold shadow-sm',
-    dayHeader: 'text-emerald-950 font-extrabold',
-    timelineHour: 'text-emerald-800 font-semibold',
-    hourBorder: 'border-emerald-200/60',
-    weekdayHeader: 'text-emerald-950 bg-emerald-200/90 font-extrabold',
-    monthGridBg: 'bg-white/80',
-    dayNumber: 'text-emerald-950 font-bold',
-  },
-};
+const fallbackCategoryColors = getTheme().categoryColors;
 
 export interface CalendarAppProps {
   initialAgeGroups?: string[];
@@ -274,6 +172,17 @@ export default function CalendarApp({
   const [theme, setTheme] = useState<CalendarThemeName>(DEFAULT_CALENDAR_THEME);
 
   useEffect(() => {
+    // 1. URL search param takes highest precedence (?theme=...)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const queryTheme = params.get('theme');
+      if (queryTheme && isRegisteredTheme(queryTheme)) {
+        setTheme(queryTheme as CalendarThemeName);
+        return;
+      }
+    }
+
+    // 2. Local storage persistence
     const savedTheme = localStorage.getItem('calendar-theme');
     if (savedTheme) {
       setTheme(resolveCalendarTheme(savedTheme));
@@ -281,8 +190,15 @@ export default function CalendarApp({
   }, []);
 
   const changeTheme = (newTheme: CalendarThemeName) => {
+    const prev = theme;
     setTheme(newTheme);
     localStorage.setItem('calendar-theme', newTheme);
+    analytics.changeTheme(newTheme, prev);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('theme', newTheme);
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
   // Date navigation state
@@ -369,7 +285,7 @@ export default function CalendarApp({
     return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
-  const activeTheme = themeClasses[theme] || themeClasses.cosmo;
+  const activeTheme = getTheme(theme);
 
   return (
     <div className={activeTheme.bg}>
@@ -403,31 +319,35 @@ export default function CalendarApp({
 
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             {/* Theme Selector */}
-            <div className={`inline-flex rounded-xl p-0.5 ${activeTheme.themePicker}`}>
-              <button
-                onClick={() => changeTheme('cosmo')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${
-                  theme === 'cosmo' ? 'bg-violet-600 text-white' : activeTheme.themePickerInactive
-                }`}
-              >
-                🌌 Cosmo
-              </button>
-              <button
-                onClick={() => changeTheme('bubblegum')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${
-                  theme === 'bubblegum' ? 'bg-pink-500 text-white' : activeTheme.themePickerInactive
-                }`}
-              >
-                🍬 Playful
-              </button>
-              <button
-                onClick={() => changeTheme('jungle')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${
-                  theme === 'jungle' ? 'bg-emerald-600 text-white' : activeTheme.themePickerInactive
-                }`}
-              >
-                🌴 Jungle
-              </button>
+            <div className={`inline-flex rounded-xl p-0.5 overflow-x-auto max-w-full ${activeTheme.themePicker}`}>
+              {listThemes().map((t) => {
+                const isActive = theme === t.name;
+                const activeBtnStyle =
+                  t.name === 'cosmo'
+                    ? 'bg-violet-600 text-white'
+                    : t.name === 'bubblegum'
+                    ? 'bg-purple-700 text-white'
+                    : t.name === 'jungle'
+                    ? 'bg-emerald-700 text-white'
+                    : t.name === 'sunshine'
+                    ? 'bg-amber-600 text-white'
+                    : t.name === 'ocean'
+                    ? 'bg-cyan-600 text-white'
+                    : 'bg-violet-600 text-white';
+
+                return (
+                  <button
+                    key={t.name}
+                    type="button"
+                    onClick={() => changeTheme(t.name)}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${
+                      isActive ? `${activeBtnStyle} shadow-sm` : activeTheme.themePickerInactive
+                    }`}
+                  >
+                    {t.displayName}
+                  </button>
+                );
+              })}
             </div>
 
             {/* View Selectors */}
@@ -688,7 +608,7 @@ export default function CalendarApp({
             {/* Right 1 Col: Ongoing & Multi-day Programs Section */}
             <OngoingProgramsList
               events={activeMultiDayEvents}
-              categoryColors={categoryColors}
+              categoryColors={activeTheme.categoryColors}
               activeTheme={activeTheme}
               onSelectEvent={(ev) => setSelectedEvent(ev)}
             />
@@ -830,7 +750,7 @@ export default function CalendarApp({
       {selectedEvent && (
         <EventDetailModal
           event={selectedEvent}
-          categoryColors={categoryColors}
+          categoryColors={activeTheme.categoryColors}
           activeTheme={activeTheme}
           isFromDayModal={Boolean(selectedDateForDetails)}
           isBookmarked={bookmarkedEventIds.includes(selectedEvent.id)}

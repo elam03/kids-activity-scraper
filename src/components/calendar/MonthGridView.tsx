@@ -73,7 +73,9 @@ export default function MonthGridView({
               {dayEvents.slice(0, visibleLimit).map((ev) => (
                 <div
                   key={ev.id}
-                  className="px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-medium border border-slate-300/40 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 truncate hover:border-slate-400 dark:hover:border-slate-700 transition"
+                  className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-medium border truncate transition ${
+                    activeTheme.cardAlt || 'bg-slate-900 border-slate-800'
+                  } ${activeTheme.cardText || 'text-slate-200'}`}
                   title={ev.title}
                 >
                   {ev.title}

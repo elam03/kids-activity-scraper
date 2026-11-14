@@ -158,4 +158,14 @@ export const analytics = {
       placement,
     });
   },
+
+  /**
+   * Triggered when the user or application switches the active visual theme.
+   */
+  changeTheme: (theme: string, fromTheme?: string) => {
+    trackAnalyticsEvent('change_theme', {
+      theme,
+      from_theme: fromTheme,
+    });
+  },
 };

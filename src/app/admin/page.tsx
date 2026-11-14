@@ -13,105 +13,11 @@ import {
   resolveCalendarTheme,
   type CalendarThemeName,
 } from '@/lib/calendar-query';
-
-const themeClasses: Record<string, any> = {
-  cosmo: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 px-4 py-8 sm:px-6 lg:px-8 text-slate-100 transition-all duration-300',
-    text: 'text-slate-100',
-    textHeading: 'text-slate-100',
-    textMuted: 'text-slate-400',
-    card: 'bg-slate-900/10 border-slate-900 hover:border-slate-800',
-    cardAlt: 'bg-slate-950/80 border-slate-800 hover:border-slate-700',
-    cardBorder: 'border-slate-900',
-    cardText: 'text-slate-300',
-    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-violet-200 to-indigo-200',
-    navBtn: 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-300',
-    badge: 'bg-slate-800 text-slate-300 border-slate-700',
-    activeTab: 'bg-violet-600 text-white',
-    inactiveTab: 'text-slate-400 hover:text-slate-200',
-    border: 'border-slate-900',
-    activeSubTab: 'border-violet-500 text-violet-400 font-bold',
-    inactiveSubTab: 'border-transparent text-slate-400 hover:text-slate-200',
-    input: 'border-slate-800 bg-slate-950 text-slate-100 placeholder:text-slate-600 focus:border-violet-500',
-    deepScrapeBtn: 'bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300',
-    themePicker: 'bg-slate-900/60 border-slate-800/40',
-    themePickerInactive: 'text-slate-400 hover:text-slate-200',
-    modal: 'bg-slate-900 border-slate-800 text-slate-100 shadow-2xl shadow-slate-950/50',
-    modalTitle: 'text-slate-100 font-bold',
-    modalInner: 'bg-slate-950/60 border-slate-800 text-slate-300',
-    closeBtn: 'text-slate-400 hover:text-slate-200 hover:bg-slate-800',
-    accentText: 'text-violet-400',
-    tableHeader: 'bg-slate-950/60 text-slate-400 border-slate-800 font-bold',
-    tableDivide: 'divide-slate-800/60',
-    tableRowHover: 'hover:bg-slate-900/50',
-    tableText: 'text-slate-200',
-    tableMuted: 'text-slate-400',
-  },
-  bubblegum: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-100 via-purple-50 to-indigo-100 px-4 py-8 sm:px-6 lg:px-8 text-slate-900 transition-all duration-300',
-    text: 'text-slate-900',
-    textHeading: 'text-purple-950 font-bold',
-    textMuted: 'text-purple-900 font-medium',
-    card: 'bg-white border-purple-200 shadow-md shadow-purple-500/5 hover:border-purple-300',
-    cardAlt: 'bg-purple-50/80 border-purple-200 hover:border-purple-300',
-    cardBorder: 'border-purple-200',
-    cardText: 'text-slate-800 font-medium',
-    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-pink-600 to-purple-600 font-extrabold',
-    navBtn: 'bg-white border-purple-200 hover:border-purple-300 text-purple-900 font-semibold shadow-sm',
-    badge: 'bg-purple-100 text-purple-800 border-purple-200 font-bold',
-    activeTab: 'bg-purple-600 text-white shadow-md shadow-purple-500/20',
-    inactiveTab: 'text-purple-700 hover:text-purple-900',
-    border: 'border-purple-200',
-    activeSubTab: 'border-purple-600 text-purple-900 font-bold',
-    inactiveSubTab: 'border-transparent text-purple-700/80 hover:text-purple-950',
-    input: 'border-purple-200 bg-white text-purple-950 placeholder:text-purple-400 focus:border-purple-500',
-    deepScrapeBtn: 'bg-white border border-purple-200 hover:border-purple-400 text-purple-900 font-semibold shadow-sm',
-    themePicker: 'bg-white/80 border-purple-200 shadow-sm',
-    themePickerInactive: 'text-purple-700 hover:text-purple-950',
-    modal: 'bg-white border-purple-300 text-slate-900 shadow-2xl shadow-purple-500/20',
-    modalTitle: 'text-purple-950 font-bold',
-    modalInner: 'bg-purple-50 border-purple-200 text-purple-950 font-medium',
-    closeBtn: 'text-purple-500 hover:text-purple-700 hover:bg-purple-100/70',
-    accentText: 'text-purple-900 font-bold',
-    tableHeader: 'bg-purple-100/90 text-purple-950 border-purple-200 font-bold',
-    tableDivide: 'divide-purple-200/80',
-    tableRowHover: 'hover:bg-purple-50/90',
-    tableText: 'text-slate-900 font-medium',
-    tableMuted: 'text-purple-900/80 font-medium',
-  },
-  jungle: {
-    bg: 'min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-100 via-yellow-50 to-amber-100 px-4 py-8 sm:px-6 lg:px-8 text-emerald-950 transition-all duration-300',
-    text: 'text-emerald-950',
-    textHeading: 'text-emerald-950 font-bold',
-    textMuted: 'text-emerald-900 font-medium',
-    card: 'bg-white border-emerald-200 shadow-md shadow-emerald-500/5 hover:border-emerald-300',
-    cardAlt: 'bg-emerald-50/80 border-emerald-200 hover:border-emerald-300',
-    cardBorder: 'border-emerald-200',
-    cardText: 'text-emerald-950 font-medium',
-    headerText: 'bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-amber-700 font-extrabold',
-    navBtn: 'bg-white border-emerald-200 hover:border-emerald-300 text-emerald-900 font-semibold shadow-sm',
-    badge: 'bg-emerald-100 text-emerald-800 border-emerald-200 font-bold',
-    activeTab: 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20',
-    inactiveTab: 'text-emerald-800 hover:text-emerald-950',
-    border: 'border-emerald-200',
-    activeSubTab: 'border-emerald-600 text-emerald-950 font-bold',
-    inactiveSubTab: 'border-transparent text-emerald-800/80 hover:text-emerald-950',
-    input: 'border-emerald-200 bg-white text-emerald-950 placeholder:text-emerald-500 focus:border-emerald-500',
-    deepScrapeBtn: 'bg-white border border-emerald-200 hover:border-emerald-400 text-emerald-900 font-semibold shadow-sm',
-    themePicker: 'bg-white/80 border-emerald-200 shadow-sm',
-    themePickerInactive: 'text-emerald-800 hover:text-emerald-950',
-    modal: 'bg-white border-emerald-300 text-emerald-950 shadow-2xl shadow-emerald-500/20',
-    modalTitle: 'text-emerald-950 font-bold',
-    modalInner: 'bg-emerald-50 border-emerald-200 text-emerald-950 font-medium',
-    closeBtn: 'text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100/70',
-    accentText: 'text-emerald-900 font-bold',
-    tableHeader: 'bg-emerald-100/90 text-emerald-950 border-emerald-200 font-bold',
-    tableDivide: 'divide-emerald-200/80',
-    tableRowHover: 'hover:bg-emerald-50/90',
-    tableText: 'text-emerald-950 font-medium',
-    tableMuted: 'text-emerald-900/80 font-medium',
-  },
-};
+import {
+  getTheme,
+  listThemes,
+  isRegisteredTheme,
+} from '@/lib/themes';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'monitoring' | 'analytics' | 'sources' | 'url_ingestion' | 'upload' | 'events'>('monitoring');
@@ -131,9 +37,17 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('calendar-theme');
-    if (savedTheme) {
-      setTheme(resolveCalendarTheme(savedTheme));
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const queryTheme = params.get('theme');
+      if (queryTheme && isRegisteredTheme(queryTheme)) {
+        setTheme(queryTheme as CalendarThemeName);
+      } else {
+        const savedTheme = localStorage.getItem('calendar-theme');
+        if (savedTheme) {
+          setTheme(resolveCalendarTheme(savedTheme));
+        }
+      }
     }
     fetchPendingCount();
   }, []);
@@ -141,9 +55,14 @@ export default function AdminDashboard() {
   const changeTheme = (newTheme: CalendarThemeName) => {
     setTheme(newTheme);
     localStorage.setItem('calendar-theme', newTheme);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('theme', newTheme);
+      window.history.replaceState({}, '', url.toString());
+    }
   };
 
-  const activeTheme = themeClasses[theme] || themeClasses.cosmo;
+  const activeTheme = getTheme(theme);
 
   return (
     <div className={activeTheme.bg}>
@@ -169,25 +88,35 @@ export default function AdminDashboard() {
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Theme Selector */}
-            <div className={`inline-flex rounded-xl border p-0.5 shadow-sm ${activeTheme.themePicker}`}>
-              <button
-                onClick={() => changeTheme('cosmo')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'cosmo' ? 'bg-violet-600 text-white' : activeTheme.themePickerInactive}`}
-              >
-                🌌 Cosmo
-              </button>
-              <button
-                onClick={() => changeTheme('bubblegum')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'bubblegum' ? 'bg-pink-500 text-white' : activeTheme.themePickerInactive}`}
-              >
-                🍬 Playful
-              </button>
-              <button
-                onClick={() => changeTheme('jungle')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition ${theme === 'jungle' ? 'bg-emerald-600 text-white' : activeTheme.themePickerInactive}`}
-              >
-                🌴 Jungle
-              </button>
+            <div className={`inline-flex rounded-xl border p-0.5 shadow-sm overflow-x-auto max-w-full ${activeTheme.themePicker}`}>
+              {listThemes().map((t) => {
+                const isActive = theme === t.name;
+                const activeBtnStyle =
+                  t.name === 'cosmo'
+                    ? 'bg-violet-600 text-white'
+                    : t.name === 'bubblegum'
+                    ? 'bg-purple-700 text-white'
+                    : t.name === 'jungle'
+                    ? 'bg-emerald-700 text-white'
+                    : t.name === 'sunshine'
+                    ? 'bg-amber-600 text-white'
+                    : t.name === 'ocean'
+                    ? 'bg-cyan-600 text-white'
+                    : 'bg-violet-600 text-white';
+
+                return (
+                  <button
+                    key={t.name}
+                    type="button"
+                    onClick={() => changeTheme(t.name)}
+                    className={`px-2 py-1 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${
+                      isActive ? `${activeBtnStyle} shadow-sm` : activeTheme.themePickerInactive
+                    }`}
+                  >
+                    {t.displayName}
+                  </button>
+                );
+              })}
             </div>
 
             <nav className="flex items-center gap-3">

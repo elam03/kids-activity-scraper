@@ -41,14 +41,14 @@ export default function DayTimelineView({
               <div className="flex flex-col">
                 <span
                   className={`text-[9px] font-extrabold uppercase tracking-widest ${
-                    isToday ? 'text-violet-500' : 'text-slate-500'
+                    isToday ? 'text-violet-500' : (activeTheme.dayHeader || 'text-slate-400')
                   }`}
                 >
                   {date.toLocaleDateString('en-US', { weekday: 'short' })}
                 </span>
                 <span
                   className={`text-base font-extrabold ${
-                    isToday ? 'text-violet-500' : 'text-slate-700 dark:text-slate-300'
+                    isToday ? 'text-violet-500' : (activeTheme.textHeading || 'text-slate-100')
                   }`}
                 >
                   {date.getDate()}
@@ -68,7 +68,9 @@ export default function DayTimelineView({
               {dayEvents.length === 0 ? (
                 <div
                   onClick={() => onSelectDate(date)}
-                  className="text-[10px] text-slate-500 italic py-2 sm:py-6 text-center cursor-pointer hover:text-violet-400 transition"
+                  className={`text-[10px] font-medium italic py-2 sm:py-6 text-center cursor-pointer transition opacity-75 hover:opacity-100 ${
+                    activeTheme.textMuted || 'text-slate-400'
+                  }`}
                 >
                   No activities
                 </div>
@@ -78,12 +80,22 @@ export default function DayTimelineView({
                     <div
                       key={ev.id}
                       onClick={() => onSelectDate(date)}
-                      className="p-2 sm:p-2.5 rounded-xl border border-slate-300/40 dark:border-slate-800 bg-white/70 dark:bg-slate-950/80 cursor-pointer transition hover:border-slate-400 dark:hover:border-slate-700 active:scale-[0.98] group"
+                      className={`p-2 sm:p-2.5 rounded-xl border cursor-pointer transition active:scale-[0.98] group ${
+                        activeTheme.cardAlt || 'bg-slate-900 border-slate-800'
+                      }`}
                     >
-                      <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 line-clamp-2 leading-tight group-hover:text-violet-600 dark:group-hover:text-violet-400 transition">
+                      <div
+                        className={`text-[11px] font-bold line-clamp-2 leading-tight group-hover:text-violet-500 transition ${
+                          activeTheme.cardText || 'text-slate-100'
+                        }`}
+                      >
                         {ev.title}
                       </div>
-                      <div className="flex items-center gap-1.5 mt-1 text-[9px] text-slate-500">
+                      <div
+                        className={`flex items-center gap-1.5 mt-1 text-[9px] ${
+                          activeTheme.textMuted || 'text-slate-400'
+                        }`}
+                      >
                         <span>{ev.startTime || 'All day'}</span>
                         {ev.location && (
                           <>
