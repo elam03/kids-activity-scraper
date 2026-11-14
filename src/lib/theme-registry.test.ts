@@ -15,29 +15,33 @@ import {
   isWcagAaCompliant,
 } from './themes/contrast';
 
-test('Theme Registry - default themes are registered and well-formed', () => {
+test('Theme Registry - default themes are registered and streamlined to Cosmo Dark and Daylight', () => {
   const themes = listThemes();
   const themeNames = themes.map((t) => t.name);
 
-  assert.ok(themeNames.includes('cosmo'), 'cosmo theme should be registered');
-  assert.ok(themeNames.includes('bubblegum'), 'bubblegum theme should be registered');
-  assert.ok(themeNames.includes('jungle'), 'jungle theme should be registered');
-  assert.ok(themeNames.includes('sunshine'), 'sunshine theme should be registered');
-  assert.ok(themeNames.includes('ocean'), 'ocean theme should be registered');
+  assert.deepEqual(themeNames, ['cosmo', 'daylight'], 'Themes should be streamlined to cosmo and daylight');
+  assert.equal(DEFAULT_THEME_NAME, 'cosmo', 'Default theme must be cosmo dark');
 
   const cosmo = getTheme('cosmo');
   assert.equal(cosmo.mode, 'dark');
-  assert.ok(cosmo.bg.includes('slate-900'));
-  assert.ok(cosmo.card.includes('border-'));
+  assert.ok(cosmo.bg.includes('slate-950') || cosmo.bg.includes('slate-900'));
   assert.ok(cosmo.btnMore, 'btnMore token must be defined');
+  assert.ok(cosmo.todayText, 'todayText token must be defined');
+  assert.ok(cosmo.todayBg, 'todayBg token must be defined');
+  assert.ok(cosmo.todayBorder, 'todayBorder token must be defined');
+  // Title must NOT use text-transparent
+  assert.ok(!cosmo.headerText.includes('text-transparent'), 'Cosmo headerText must be solid and readable');
 
-  const bubblegum = getTheme('bubblegum');
-  assert.equal(bubblegum.mode, 'light');
-  assert.ok(bubblegum.btnMore, 'btnMore token must be defined');
-
-  const jungle = getTheme('jungle');
-  assert.equal(jungle.mode, 'light');
-  assert.ok(jungle.btnMore, 'btnMore token must be defined');
+  const daylight = getTheme('daylight');
+  assert.equal(daylight.mode, 'light');
+  assert.ok(daylight.bg.includes('edece8') || daylight.bg.includes('slate-50') || daylight.bg.includes('white'));
+  assert.ok(daylight.btnMore, 'btnMore token must be defined');
+  assert.ok(daylight.todayText, 'todayText token must be defined');
+  assert.ok(daylight.todayBg, 'todayBg token must be defined');
+  assert.ok(daylight.todayBorder, 'todayBorder token must be defined');
+  // Title must NOT use text-transparent or gradients that vanish
+  assert.ok(!daylight.headerText.includes('text-transparent'), 'Daylight headerText must be solid text-slate-900');
+  assert.ok(daylight.headerText.includes('slate-900') || daylight.headerText.includes('slate-950'));
 });
 
 test('Theme Registry - dynamic registration of custom themes', () => {
@@ -53,6 +57,7 @@ test('Theme Registry - dynamic registration of custom themes', () => {
       accent: '#f43f5e',
       border: '#334155',
     },
+    bodyBg: 'bg-black text-rose-100',
     bg: 'bg-black text-rose-100',
     text: 'text-rose-100',
     textHeading: 'text-rose-400 font-bold',
@@ -84,6 +89,10 @@ test('Theme Registry - dynamic registration of custom themes', () => {
     weekdayHeader: 'text-rose-300 bg-zinc-900',
     monthGridBg: 'bg-zinc-950/60',
     dayNumber: 'text-rose-300 font-bold',
+    todayText: 'text-rose-400 font-bold',
+    todayBg: 'bg-rose-950/40',
+    todayBorder: 'border-rose-500',
+    todayBadge: 'bg-rose-900 text-rose-200 border-rose-700',
     categoryColors: {
       sports: 'bg-emerald-950 text-emerald-300 border-emerald-800',
       arts: 'bg-pink-950 text-pink-300 border-pink-800',
@@ -114,8 +123,7 @@ test('Theme Registry - dynamic registration of custom themes', () => {
 
 test('Theme Resolution - handles URL queries, storage, and fallback safely', () => {
   assert.equal(resolveThemeName('cosmo'), 'cosmo');
-  assert.equal(resolveThemeName('bubblegum'), 'bubblegum');
-  assert.equal(resolveThemeName('jungle'), 'jungle');
+  assert.equal(resolveThemeName('daylight'), 'daylight');
   assert.equal(resolveThemeName('unknown-theme'), DEFAULT_THEME_NAME);
   assert.equal(resolveThemeName(undefined), DEFAULT_THEME_NAME);
   assert.equal(resolveThemeName(null), DEFAULT_THEME_NAME);
@@ -176,22 +184,14 @@ test('Theme Verification - All registered themes have WCAG AA compliant palette 
   }
 });
 
-test('Theme Verification - Light theme category badges must not use faint text on light badges', () => {
-  const bubblegum = getTheme('bubblegum');
-  const jungle = getTheme('jungle');
+test('Theme Verification - Daylight theme category badges must not use faint text on light badges', () => {
+  const daylight = getTheme('daylight');
 
-  for (const [cat, classes] of Object.entries(bubblegum.categoryColors)) {
+  for (const [cat, classes] of Object.entries(daylight.categoryColors)) {
     // In light themes, text must NOT be faint 400 shades like text-emerald-400 or text-pink-400
     assert.ok(
       !classes.includes('-400'),
-      `Bubblegum category ${cat} classes (${classes}) should not use -400 low-contrast text on light cards`
-    );
-  }
-
-  for (const [cat, classes] of Object.entries(jungle.categoryColors)) {
-    assert.ok(
-      !classes.includes('-400'),
-      `Jungle category ${cat} classes (${classes}) should not use -400 low-contrast text on light cards`
+      `Daylight category ${cat} classes (${classes}) should not use -400 low-contrast text on light cards`
     );
   }
 });

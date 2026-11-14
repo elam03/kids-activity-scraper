@@ -55,7 +55,7 @@ export default function MonthGridView({
             key={idx}
             onClick={() => onSelectDate(date)}
             className={`p-1 sm:p-2 min-h-[70px] sm:h-28 overflow-hidden flex flex-col justify-between transition cursor-pointer hover:bg-violet-500/5 active:bg-violet-500/10 ${
-              isToday ? 'bg-violet-950/10 ring-1 ring-inset ring-violet-500/30' : 'bg-transparent'
+              isToday ? `${activeTheme.todayBg || 'bg-violet-950/10'} ring-1 ring-inset ring-violet-500/30` : 'bg-transparent'
             } ${isCurrentMonth ? '' : 'opacity-35'}`}
           >
             <div className="flex justify-between items-baseline mb-0.5 sm:mb-1">

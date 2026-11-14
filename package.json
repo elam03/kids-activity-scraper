@@ -12,9 +12,11 @@
     "postinstall": "prisma generate",
     "evaluate:today": "tsx scripts/evaluate-today-events.ts",
     "eval:today": "tsx scripts/evaluate-today-events.ts",
-    "theme:snapshots": "tsx scripts/capture-theme-snapshots.ts"
+    "theme:snapshots": "tsx scripts/capture-theme-snapshots.ts",
+    "ga:stats": "tsx scripts/fetch-ga-stats.ts"
   },
   "dependencies": {
+    "@google-analytics/data": "^7.3.0",
     "@prisma/client": "^5.17.0",
     "google-auth-library": "^11.1.0",
     "jose": "^6.2.12",

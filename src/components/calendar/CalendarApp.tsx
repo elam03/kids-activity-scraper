@@ -20,6 +20,7 @@ import {
 } from '@/lib/themes';
 import DayTimelineView from '@/components/calendar/DayTimelineView';
 import MonthGridView from '@/components/calendar/MonthGridView';
+import PlannerGridView from '@/components/calendar/PlannerGridView';
 import OngoingProgramsList from '@/components/calendar/OngoingProgramsList';
 import EventDetailModal from '@/components/calendar/EventDetailModal';
 import DayDetailModal from '@/components/calendar/DayDetailModal';
@@ -65,7 +66,7 @@ export default function CalendarApp({
   headerHero,
 }: CalendarAppProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [viewMode, setViewMode] = useState<'day' | 'month' | 'map'>('day');
+  const [viewMode, setViewMode] = useState<'day' | 'month' | 'planner' | 'map'>('day');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedDateForDetails, setSelectedDateForDetails] = useState<Date | null>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -276,7 +277,7 @@ export default function CalendarApp({
   });
 
   const changePivot = (offset: number) => {
-    if (viewMode === 'day' || viewMode === 'month') {
+    if (viewMode === 'day' || viewMode === 'month' || viewMode === 'planner') {
       setCurrentPivotDate((prev) => calculateNextPivotDate(prev, viewMode, offset));
     }
   };
@@ -286,6 +287,14 @@ export default function CalendarApp({
   };
 
   const activeTheme = getTheme(theme);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const classesToAdd = activeTheme.bodyBg.split(/\s+/).filter(Boolean);
+      document.body.classList.remove('bg-slate-950', 'bg-slate-50', 'text-slate-100', 'text-slate-900');
+      classesToAdd.forEach((cls) => document.body.classList.add(cls));
+    }
+  }, [activeTheme.bodyBg]);
 
   return (
     <div className={activeTheme.bg}>
@@ -325,15 +334,7 @@ export default function CalendarApp({
                 const activeBtnStyle =
                   t.name === 'cosmo'
                     ? 'bg-violet-600 text-white'
-                    : t.name === 'bubblegum'
-                    ? 'bg-purple-700 text-white'
-                    : t.name === 'jungle'
-                    ? 'bg-emerald-700 text-white'
-                    : t.name === 'sunshine'
-                    ? 'bg-amber-600 text-white'
-                    : t.name === 'ocean'
-                    ? 'bg-cyan-600 text-white'
-                    : 'bg-violet-600 text-white';
+                    : 'bg-indigo-600 text-white';
 
                 return (
                   <button
@@ -373,6 +374,18 @@ export default function CalendarApp({
                 }`}
               >
                 Month
+              </button>
+              <button
+                onClick={() => {
+                  setViewMode('planner');
+                  analytics.toggleViewMode('planner');
+                }}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                  viewMode === 'planner' ? activeTheme.activeTab : activeTheme.inactiveTab
+                }`}
+                title="Desk blotter paper planner view"
+              >
+                📝 Planner
               </button>
               <button
                 onClick={() => {
@@ -581,7 +594,11 @@ export default function CalendarApp({
             <div className="lg:col-span-3 space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
-                  {viewMode === 'map' ? 'Geographic Event View' : 'Daily Schedule'}
+                  {viewMode === 'map'
+                    ? 'Geographic Event View'
+                    : viewMode === 'planner'
+                    ? 'Desk Blotter Paper Planner'
+                    : 'Daily Schedule'}
                 </h2>
               </div>
 
@@ -593,6 +610,14 @@ export default function CalendarApp({
                   getEventsForDate={getEventsForDate}
                   onSelectDate={(d) => setSelectedDateForDetails(d)}
                   activeTheme={activeTheme}
+                />
+              ) : viewMode === 'planner' ? (
+                <PlannerGridView
+                  currentPivotDate={currentPivotDate}
+                  events={filteredEvents}
+                  activeTheme={activeTheme}
+                  onSelectEvent={(ev) => setSelectedEvent(ev)}
+                  onSelectDate={(d) => setSelectedDateForDetails(d)}
                 />
               ) : (
                 <MonthGridView

@@ -147,14 +147,14 @@ test('analytics.toggleViewMode, bookmarkEvent, and clickKofiTip format correctly
     analytics.bookmarkEvent('ev-99', true);
     analytics.bookmarkEvent('ev-99', false);
     analytics.clickKofiTip('header');
-    analytics.changeTheme('bubblegum', 'jungle');
+    analytics.changeTheme('daylight', 'cosmo');
 
     assert.equal(calls.length, 5);
     assert.deepEqual(calls[0].params, { view_mode: 'month' });
     assert.deepEqual(calls[1].params, { event_id: 'ev-99', action: 'save' });
     assert.deepEqual(calls[2].params, { event_id: 'ev-99', action: 'unsave' });
     assert.deepEqual(calls[3].params, { placement: 'header' });
-    assert.deepEqual(calls[4].params, { theme: 'bubblegum', from_theme: 'jungle' });
+    assert.deepEqual(calls[4].params, { theme: 'daylight', from_theme: 'cosmo' });
   } finally {
     delete (global as any).window;
   }

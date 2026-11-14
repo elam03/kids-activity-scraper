@@ -6,7 +6,7 @@ const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrom
 const ARTIFACT_DIR = '/Users/ericlam/.gemini/antigravity-cli/brain/044ecd40-0769-40d4-af0d-36a22be0906a/snapshots';
 const BASE_URL = 'http://localhost:3000';
 
-const THEMES = ['cosmo', 'bubblegum', 'jungle', 'sunshine', 'ocean'] as const;
+const THEMES = ['cosmo', 'daylight'] as const;
 
 async function main() {
   if (!fs.existsSync(ARTIFACT_DIR)) {

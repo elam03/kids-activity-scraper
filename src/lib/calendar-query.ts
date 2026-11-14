@@ -126,7 +126,7 @@ export function isMultiDayActiveInRange(
 
 export function getActiveMultiDayEvents(
   events: CalendarEvent[],
-  viewMode: 'day' | 'month' | 'map',
+  viewMode: 'day' | 'month' | 'planner' | 'map',
   pivot: Date
 ): CalendarEvent[] {
   const multiDayOnly = events.filter(isMultiDayEvent);
@@ -145,20 +145,20 @@ export function getActiveMultiDayEvents(
 
 export function calculateNextPivotDate(
   pivot: Date,
-  viewMode: 'day' | 'month',
+  viewMode: 'day' | 'month' | 'planner',
   offset: number
 ): Date {
   const newPivot = new Date(pivot);
   if (viewMode === 'day') {
     newPivot.setDate(pivot.getDate() + offset * 14);
-  } else if (viewMode === 'month') {
+  } else if (viewMode === 'month' || viewMode === 'planner') {
     newPivot.setMonth(pivot.getMonth() + offset);
   }
   return newPivot;
 }
 
 export interface UseCalendarQueryOptions {
-  viewMode: 'day' | 'month' | 'map';
+  viewMode: 'day' | 'month' | 'planner' | 'map';
   currentPivotDate: Date;
   selectedAgeGroups: string[];
   selectedCategory: string;
@@ -276,9 +276,9 @@ export function getMonthGridContainerClasses(theme?: Partial<CalendarThemeConfig
 /**
  * Resolves Tailwind classes for calendar day numbers in month view cells.
  */
-export function getMonthDayNumberClasses(isToday: boolean, theme?: Partial<CalendarThemeConfig> | null): string {
+export function getMonthDayNumberClasses(isToday: boolean, theme?: Partial<CalendarThemeConfig> | any): string {
   if (isToday) {
-    return 'text-violet-500 font-bold';
+    return theme?.todayText || 'text-violet-500 font-bold';
   }
   if (theme?.dayNumber) {
     return theme.dayNumber;
@@ -286,24 +286,24 @@ export function getMonthDayNumberClasses(isToday: boolean, theme?: Partial<Calen
   return 'text-slate-400 font-medium';
 }
 
-export type CalendarThemeName = 'cosmo' | 'bubblegum' | 'jungle' | 'sunshine' | 'ocean' | (string & {});
+export type CalendarThemeName = 'cosmo' | 'daylight' | (string & {});
 
 export const VALID_THEMES: readonly CalendarThemeName[] = [
   'cosmo',
-  'bubblegum',
-  'jungle',
-  'sunshine',
-  'ocean',
+  'daylight',
 ] as const;
 
-export const DEFAULT_CALENDAR_THEME: CalendarThemeName = 'jungle';
+export const DEFAULT_CALENDAR_THEME: CalendarThemeName = 'cosmo';
 
 /**
- * Resolves the active calendar theme name, defaulting to 'jungle' if undefined or invalid.
+ * Resolves the active calendar theme name, defaulting to 'cosmo' if undefined or invalid.
  */
 export function resolveCalendarTheme(savedTheme?: string | null): CalendarThemeName {
-  if (savedTheme && (VALID_THEMES as readonly string[]).includes(savedTheme)) {
-    return savedTheme as CalendarThemeName;
+  if (savedTheme === 'daylight' || savedTheme === 'cosmo') {
+    return savedTheme;
+  }
+  if (savedTheme === 'bubblegum' || savedTheme === 'jungle' || savedTheme === 'sunshine' || savedTheme === 'ocean') {
+    return 'daylight';
   }
   return DEFAULT_CALENDAR_THEME;
 }

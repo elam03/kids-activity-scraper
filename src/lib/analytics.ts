@@ -132,9 +132,9 @@ export const analytics = {
   },
 
   /**
-   * Triggered when the view mode is switched (day/timeline, month, map).
+   * Triggered when the view mode is switched (day/timeline, month, planner, map).
    */
-  toggleViewMode: (viewMode: 'day' | 'month' | 'map') => {
+  toggleViewMode: (viewMode: 'day' | 'month' | 'planner' | 'map') => {
     trackAnalyticsEvent('toggle_view_mode', {
       view_mode: viewMode,
     });

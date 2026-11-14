@@ -64,6 +64,14 @@ export default function AdminDashboard() {
 
   const activeTheme = getTheme(theme);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const classesToAdd = activeTheme.bodyBg.split(/\s+/).filter(Boolean);
+      document.body.classList.remove('bg-slate-950', 'bg-slate-50', 'text-slate-100', 'text-slate-900');
+      classesToAdd.forEach((cls) => document.body.classList.add(cls));
+    }
+  }, [activeTheme.bodyBg]);
+
   return (
     <div className={activeTheme.bg}>
       {/* Top Navbar */}
@@ -94,15 +102,7 @@ export default function AdminDashboard() {
                 const activeBtnStyle =
                   t.name === 'cosmo'
                     ? 'bg-violet-600 text-white'
-                    : t.name === 'bubblegum'
-                    ? 'bg-purple-700 text-white'
-                    : t.name === 'jungle'
-                    ? 'bg-emerald-700 text-white'
-                    : t.name === 'sunshine'
-                    ? 'bg-amber-600 text-white'
-                    : t.name === 'ocean'
-                    ? 'bg-cyan-600 text-white'
-                    : 'bg-violet-600 text-white';
+                    : 'bg-indigo-600 text-white';
 
                 return (
                   <button

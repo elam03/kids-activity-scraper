@@ -1,23 +1,14 @@
 import type { ThemeTokens, ThemeName } from './types';
-import {
-  cosmoTheme,
-  bubblegumTheme,
-  jungleTheme,
-  sunshineTheme,
-  oceanTheme,
-} from './definitions';
+import { cosmoTheme, daylightTheme } from './definitions';
 
-export const DEFAULT_THEME_NAME: ThemeName = 'jungle';
+export const DEFAULT_THEME_NAME: ThemeName = 'cosmo';
 
 const registry = new Map<string, ThemeTokens>();
 
-// Register core default themes
+// Register core streamlined themes: Cosmo Dark & Daylight (Bright Clean)
 function initDefaults() {
   registry.set(cosmoTheme.name, cosmoTheme);
-  registry.set(bubblegumTheme.name, bubblegumTheme);
-  registry.set(jungleTheme.name, jungleTheme);
-  registry.set(sunshineTheme.name, sunshineTheme);
-  registry.set(oceanTheme.name, oceanTheme);
+  registry.set(daylightTheme.name, daylightTheme);
 }
 
 initDefaults();
@@ -33,9 +24,10 @@ export function registerTheme(theme: ThemeTokens): void {
  * Retrieves theme tokens by name. Falls back to DEFAULT_THEME_NAME if not found.
  */
 export function getTheme(name?: string | null): ThemeTokens {
-  const base = name && registry.has(name)
-    ? registry.get(name)!
-    : registry.get(DEFAULT_THEME_NAME) || cosmoTheme;
+  const base =
+    name && registry.has(name)
+      ? registry.get(name)!
+      : registry.get(DEFAULT_THEME_NAME) || cosmoTheme;
   return {
     ...base,
     ...(base.admin || {}),

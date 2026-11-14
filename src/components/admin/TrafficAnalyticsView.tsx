@@ -17,6 +17,9 @@ interface AnalyticsApiResponse {
   };
   gaConfig: {
     measurementId: string;
+    propertyId?: string;
+    isApiConfigured?: boolean;
+    data?: any;
   };
 }
 
@@ -373,6 +376,28 @@ export default function TrafficAnalyticsView({ activeTheme }: TrafficAnalyticsVi
             </div>
 
             <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs py-1">
+                <span className={activeTheme.textMuted}>GA4 Data API:</span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    gaConfig.isApiConfigured
+                      ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                  }`}
+                >
+                  {gaConfig.isApiConfigured
+                    ? `Connected (${gaConfig.propertyId})`
+                    : 'CLI Setup: npm run ga:stats'}
+                </span>
+              </div>
+              {gaConfig.data?.realtime?.data && (
+                <div className="p-2.5 rounded-xl border border-violet-500/20 bg-violet-500/5 text-xs flex items-center justify-between">
+                  <span className="font-semibold text-violet-500">⚡ Realtime Active Visitors:</span>
+                  <span className="font-extrabold text-sm">
+                    {gaConfig.data.realtime.data.activeUsers || 0}
+                  </span>
+                </div>
+              )}
               <a
                 href="https://analytics.google.com"
                 target="_blank"

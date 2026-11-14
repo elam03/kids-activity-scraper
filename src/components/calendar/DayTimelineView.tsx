@@ -32,7 +32,7 @@ export default function DayTimelineView({
                 : 'h-64 sm:h-72 min-h-64 sm:min-h-72'
             } overflow-hidden backdrop-blur-sm transition hover:shadow-lg ${
               isToday
-                ? 'border-violet-500/50 bg-violet-950/10 shadow-md shadow-violet-500/10'
+                ? `${activeTheme.todayBorder || 'border-violet-500/50'} ${activeTheme.todayBg || 'bg-violet-950/10'} shadow-md`
                 : activeTheme.card
             }`}
           >
@@ -41,14 +41,14 @@ export default function DayTimelineView({
               <div className="flex flex-col">
                 <span
                   className={`text-[9px] font-extrabold uppercase tracking-widest ${
-                    isToday ? 'text-violet-500' : (activeTheme.dayHeader || 'text-slate-400')
+                    isToday ? (activeTheme.todayText || 'text-violet-400') : (activeTheme.dayHeader || 'text-slate-400')
                   }`}
                 >
                   {date.toLocaleDateString('en-US', { weekday: 'short' })}
                 </span>
                 <span
                   className={`text-base font-extrabold ${
-                    isToday ? 'text-violet-500' : (activeTheme.textHeading || 'text-slate-100')
+                    isToday ? (activeTheme.todayText || 'text-violet-400') : (activeTheme.textHeading || 'text-slate-100')
                   }`}
                 >
                   {date.getDate()}
@@ -56,7 +56,9 @@ export default function DayTimelineView({
               </div>
               {dayEvents.length > 0 && (
                 <span
-                  className={`px-1.5 py-0.5 rounded-full text-[8px] font-extrabold shadow-sm ${activeTheme.badge}`}
+                  className={`px-1.5 py-0.5 rounded-full text-[8px] font-extrabold shadow-sm ${
+                    isToday ? (activeTheme.todayBadge || activeTheme.badge) : activeTheme.badge
+                  }`}
                 >
                   {dayEvents.length} items
                 </span>

@@ -1,10 +1,4 @@
-export type ThemeName =
-  | 'cosmo'
-  | 'bubblegum'
-  | 'jungle'
-  | 'sunshine'
-  | 'ocean'
-  | (string & {});
+export type ThemeName = 'cosmo' | 'daylight' | (string & {});
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -35,6 +29,7 @@ export interface ThemeTokens extends Partial<AdminThemeTokens> {
   palette: ThemePalette;
 
   // Layout & Container tokens
+  bodyBg: string;
   bg: string;
   text: string;
   textHeading: string;
@@ -50,6 +45,12 @@ export interface ThemeTokens extends Partial<AdminThemeTokens> {
   activeTab: string;
   inactiveTab: string;
   border: string;
+
+  // Today Highlight Tokens
+  todayText: string;
+  todayBg: string;
+  todayBorder: string;
+  todayBadge: string;
 
   // Modal tokens
   modal: string;

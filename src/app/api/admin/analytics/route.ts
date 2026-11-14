@@ -1,12 +1,27 @@
 import { NextResponse } from 'next/server';
 import { getTelemetrySummary } from '@/lib/telemetry';
 import { prisma } from '@/lib/prisma';
+import { getGa4CredentialsSummary, fetchGa4Overview, fetchGa4Realtime } from '@/lib/ga4-api';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
     const telemetry = getTelemetrySummary();
+    const ga4Summary = getGa4CredentialsSummary();
+
+    let ga4Data: any = null;
+    if (ga4Summary.configured) {
+      try {
+        const [overview, realtime] = await Promise.all([
+          fetchGa4Overview(7),
+          fetchGa4Realtime(),
+        ]);
+        ga4Data = { overview, realtime };
+      } catch (err) {
+        console.error('GA4 API fetch error in admin analytics route:', err);
+      }
+    }
 
     let dbMetrics = {
       totalBookmarks: 0,
@@ -36,6 +51,10 @@ export async function GET() {
       dbMetrics,
       gaConfig: {
         measurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-P4ZPYFWRLK',
+        propertyId: ga4Summary.propertyId,
+        isApiConfigured: ga4Summary.configured,
+        summary: ga4Summary,
+        data: ga4Data,
       },
     });
   } catch (error) {

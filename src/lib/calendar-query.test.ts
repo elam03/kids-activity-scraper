@@ -166,6 +166,9 @@ test('calculateNextPivotDate steps forward and backward correctly', () => {
   const forwardMonth = calculateNextPivotDate(pivot, 'month', 1);
   assert.equal(forwardMonth.getMonth(), 9, 'Steps forward by 1 month in month view');
 
+  const forwardPlanner = calculateNextPivotDate(pivot, 'planner', 1);
+  assert.equal(forwardPlanner.getMonth(), 9, 'Steps forward by 1 month in planner view');
+
   const backwardMonth = calculateNextPivotDate(pivot, 'month', -1);
   assert.equal(backwardMonth.getMonth(), 7, 'Steps backward by 1 month in month view');
 });
@@ -228,8 +231,9 @@ test('getMonthGridContainerClasses resolves theme monthGridBg or safe default', 
 });
 
 test('getMonthDayNumberClasses prioritizes today highlight and resolves theme colors', () => {
-  // Today is highlighted in violet
-  assert.equal(getMonthDayNumberClasses(true, { dayNumber: 'text-purple-950' }), 'text-violet-500 font-bold');
+  // Today uses theme.todayText if provided, or fallback
+  assert.equal(getMonthDayNumberClasses(true, { todayText: 'text-indigo-600 font-extrabold' }), 'text-indigo-600 font-extrabold');
+  assert.equal(getMonthDayNumberClasses(true, {}), 'text-violet-500 font-bold');
 
   // Regular day with theme dayNumber
   assert.equal(getMonthDayNumberClasses(false, { dayNumber: 'text-purple-950 font-bold' }), 'text-purple-950 font-bold');
@@ -239,20 +243,23 @@ test('getMonthDayNumberClasses prioritizes today highlight and resolves theme co
   assert.match(getMonthDayNumberClasses(false, null), /text-slate-/);
 });
 
-test('DEFAULT_CALENDAR_THEME defaults to jungle', () => {
-  assert.equal(DEFAULT_CALENDAR_THEME, 'jungle');
+test('DEFAULT_CALENDAR_THEME defaults to cosmo', () => {
+  assert.equal(DEFAULT_CALENDAR_THEME, 'cosmo');
 });
 
-test('resolveCalendarTheme resolves valid theme names and defaults to jungle', () => {
-  assert.equal(resolveCalendarTheme('jungle'), 'jungle');
+test('resolveCalendarTheme resolves valid theme names and defaults to cosmo', () => {
+  assert.equal(resolveCalendarTheme('daylight'), 'daylight');
   assert.equal(resolveCalendarTheme('cosmo'), 'cosmo');
-  assert.equal(resolveCalendarTheme('bubblegum'), 'bubblegum');
 
-  // Falls back to jungle for null, undefined, empty, or unknown strings
-  assert.equal(resolveCalendarTheme(null), 'jungle');
-  assert.equal(resolveCalendarTheme(undefined), 'jungle');
-  assert.equal(resolveCalendarTheme(''), 'jungle');
-  assert.equal(resolveCalendarTheme('unknown-theme'), 'jungle');
+  // Maps legacy light themes to daylight
+  assert.equal(resolveCalendarTheme('bubblegum'), 'daylight');
+  assert.equal(resolveCalendarTheme('jungle'), 'daylight');
+
+  // Falls back to cosmo for null, undefined, empty, or unknown strings
+  assert.equal(resolveCalendarTheme(null), 'cosmo');
+  assert.equal(resolveCalendarTheme(undefined), 'cosmo');
+  assert.equal(resolveCalendarTheme(''), 'cosmo');
+  assert.equal(resolveCalendarTheme('unknown-theme'), 'cosmo');
 });
 
 
