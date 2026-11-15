@@ -6,7 +6,7 @@ const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrom
 const ARTIFACT_DIR = '/Users/ericlam/.gemini/antigravity-cli/brain/044ecd40-0769-40d4-af0d-36a22be0906a/snapshots';
 const BASE_URL = 'http://localhost:3000';
 
-const THEMES = ['cosmo', 'daylight'] as const;
+const THEMES = ['cosmo', 'daylight', 'duo'] as const;
 
 async function main() {
   if (!fs.existsSync(ARTIFACT_DIR)) {
@@ -61,6 +61,24 @@ async function main() {
         console.log(`  ✓ Saved Desktop Month Grid: ${monthPath}`);
       } catch (err) {
         console.warn(`  ⚠ Warning capturing month grid for ${theme}:`, err);
+      }
+
+      // 3. Planner Grid View
+      try {
+        const buttons = await page.$$('button');
+        for (const btn of buttons) {
+          const text = await page.evaluate((el) => el.textContent, btn);
+          if (text && text.trim().toLowerCase().includes('planner')) {
+            await btn.click();
+            break;
+          }
+        }
+        await new Promise((r) => setTimeout(r, 600));
+        const plannerPath = path.join(ARTIFACT_DIR, `${theme}-planner-grid.png`);
+        await page.screenshot({ path: plannerPath, fullPage: false });
+        console.log(`  ✓ Saved Desktop Planner Grid: ${plannerPath}`);
+      } catch (err) {
+        console.warn(`  ⚠ Warning capturing planner grid for ${theme}:`, err);
       }
 
       // 3. Admin View

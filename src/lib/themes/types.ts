@@ -1,4 +1,4 @@
-export type ThemeName = 'cosmo' | 'daylight' | (string & {});
+export type ThemeName = 'cosmo' | 'daylight' | 'duo' | (string & {});
 
 export type ThemeMode = 'light' | 'dark';
 

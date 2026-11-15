@@ -43,7 +43,7 @@ export function formatEventsToItemListJsonLd(events: PrismaEventForSeo[]) {
       ? {
           name: e.source.name,
           handle: e.source.handle,
-          url: e.source.url,
+          url: (e.source as any).url || (e.source.handle ? `https://www.instagram.com/${e.source.handle.replace(/^@/, '')}` : undefined),
         }
       : null,
   }));
@@ -71,7 +71,6 @@ export async function getUpcomingEventsStructuredData(
           select: {
             name: true,
             handle: true,
-            url: true,
           },
         },
       },

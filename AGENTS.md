@@ -33,6 +33,14 @@ bd close <id>         # Complete work
 bd dolt push          # Push beads data to remote
 ```
 
+## Local Development (Railway Prod DB)
+
+When running locally, always default to connecting to the production Railway Postgres database:
+1. **Ensure Railway tunnel is running** on local port 5433:
+   `railway connect Postgres --tunnel-only -P 5433`
+2. `.env.local` defaults `DATABASE_URL` to the local tunnel at `127.0.0.1:5433`.
+3. Start the dev server with `npm run dev` (or `npm run dev:railway`).
+
 ## Non-Interactive Shell Commands
 
 **ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.

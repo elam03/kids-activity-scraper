@@ -291,7 +291,7 @@ export default function CalendarApp({
   useEffect(() => {
     if (typeof document !== 'undefined') {
       const classesToAdd = activeTheme.bodyBg.split(/\s+/).filter(Boolean);
-      document.body.classList.remove('bg-slate-950', 'bg-slate-50', 'text-slate-100', 'text-slate-900');
+      document.body.classList.remove('bg-slate-950', 'bg-slate-50', 'bg-[#edece8]', 'bg-[#f7f7f7]', 'text-slate-100', 'text-slate-900', 'text-slate-800', 'text-[#4b4b4b]');
       classesToAdd.forEach((cls) => document.body.classList.add(cls));
     }
   }, [activeTheme.bodyBg]);
@@ -334,7 +334,9 @@ export default function CalendarApp({
                 const activeBtnStyle =
                   t.name === 'cosmo'
                     ? 'bg-violet-600 text-white'
-                    : 'bg-indigo-600 text-white';
+                    : t.name === 'duo'
+                    ? 'bg-[#58cc02] text-white border-b-2 border-[#46a302]'
+                    : 'bg-slate-900 text-white';
 
                 return (
                   <button

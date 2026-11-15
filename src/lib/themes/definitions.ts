@@ -137,3 +137,72 @@ export const daylightTheme: ThemeTokens = {
     tableMuted: 'text-slate-600',
   },
 };
+
+export const duoTheme: ThemeTokens = {
+  name: 'duo',
+  displayName: 'Duo Playful',
+  mode: 'light',
+  palette: {
+    bgBase: '#f7f7f7', // Duolingo Polar background
+    cardBg: '#ffffff', // Snow surface
+    textPrimary: '#4b4b4b', // Eel text (8.9:1 AAA contrast)
+    textMuted: '#707070', // Wolf secondary (5.1:1 AA contrast)
+    accent: '#2e7d00', // Owl forest accessible accent (5.0:1 contrast)
+    border: '#e5e5e5', // Swan structural border
+  },
+  bodyBg: 'bg-[#f7f7f7] text-[#4b4b4b]',
+  bg: 'min-h-screen bg-[#f7f7f7] px-4 py-8 sm:px-6 lg:px-8 text-[#4b4b4b] flex flex-col justify-between transition-all duration-300',
+  text: 'text-[#4b4b4b]',
+  textHeading: 'text-[#4b4b4b] font-black',
+  textMuted: 'text-[#777777] font-bold',
+  card: 'bg-white border-2 border-[#e5e5e5] rounded-3xl shadow-[0_4px_0_0_#e5e5e5] hover:border-[#58cc02] hover:shadow-[0_4px_0_0_#46a302] transition-all',
+  cardAlt: 'bg-[#f7f7f7] border-2 border-[#e5e5e5] rounded-3xl hover:border-[#58cc02] transition-colors',
+  cardBorder: 'border-[#e5e5e5]',
+  cardText: 'text-[#4b4b4b] font-medium',
+  headerText: 'text-[#4b4b4b] font-black tracking-tight',
+  navBtn: 'bg-white border-2 border-[#e5e5e5] border-b-4 hover:border-[#58cc02] hover:bg-[#f7f7f7] text-[#4b4b4b] font-black rounded-2xl shadow-xs transition-all active:translate-y-0.5 active:border-b-2',
+  badge: 'bg-[#f7f7f7] text-[#4b4b4b] border-2 border-[#e5e5e5] font-black rounded-full',
+  btnMore: 'bg-white border-2 border-[#e5e5e5] border-b-4 hover:border-[#1cb0f6] text-[#0284c7] font-black rounded-xl shadow-xs transition-all active:translate-y-0.5 active:border-b-2',
+  activeTab: 'bg-[#58cc02] text-white font-black uppercase tracking-wider border-b-4 border-[#46a302] shadow-sm rounded-xl active:border-b-0 active:translate-y-1 transition-all',
+  inactiveTab: 'text-[#777777] hover:text-[#4b4b4b] hover:bg-slate-100 font-black rounded-xl transition-colors',
+  border: 'border-[#e5e5e5]',
+  todayText: 'text-[#2e7d00] font-black',
+  todayBg: 'bg-[#58cc02]/10',
+  todayBorder: 'border-2 border-[#58cc02] ring-4 ring-[#58cc02]/20 rounded-3xl',
+  todayBadge: 'bg-[#58cc02] text-white font-black border-b-2 border-[#46a302] rounded-full',
+  modal: 'bg-white border-2 border-[#e5e5e5] text-[#4b4b4b] rounded-3xl shadow-2xl',
+  modalTitle: 'text-[#4b4b4b] font-black',
+  modalInner: 'bg-[#f7f7f7] border-2 border-[#e5e5e5] rounded-2xl text-[#4b4b4b]',
+  closeBtn: 'text-[#777777] hover:text-[#4b4b4b] hover:bg-slate-100 rounded-full',
+  accentText: 'text-[#2e7d00] font-black',
+  input: 'border-2 border-[#e5e5e5] bg-white text-[#4b4b4b] font-bold rounded-2xl placeholder:text-[#a0a0a0] focus:border-[#58cc02]',
+  themePicker: 'bg-white border-2 border-[#e5e5e5] shadow-xs rounded-2xl',
+  themePickerInactive: 'text-[#777777] hover:text-[#4b4b4b] font-black',
+  viewSelectBg: 'bg-white border-2 border-[#e5e5e5] shadow-xs rounded-2xl',
+  chevron: 'border-2 border-[#e5e5e5] border-b-4 bg-white hover:bg-[#f7f7f7] hover:border-[#58cc02] text-[#4b4b4b] font-black rounded-xl shadow-xs transition-all active:translate-y-0.5 active:border-b-2',
+  dayHeader: 'text-[#4b4b4b] font-black',
+  timelineHour: 'text-[#777777] font-bold',
+  hourBorder: 'border-[#e5e5e5]',
+  weekdayHeader: 'text-[#4b4b4b] bg-[#f7f7f7] font-black uppercase tracking-wider text-xs border-b-2 border-[#e5e5e5]',
+  monthGridBg: 'bg-[#f7f7f7] border-2 border-[#e5e5e5] rounded-3xl shadow-sm',
+  dayNumber: 'text-[#4b4b4b] font-black',
+  categoryColors: {
+    sports: 'bg-[#ffc800]/15 text-[#92400e] border-2 border-[#ffc800] font-black rounded-full px-2.5 py-0.5',
+    arts: 'bg-[#ff9600]/15 text-[#9a3412] border-2 border-[#ff9600] font-black rounded-full px-2.5 py-0.5',
+    nature: 'bg-[#89e219]/20 text-[#14532d] border-2 border-[#89e219] font-black rounded-full px-2.5 py-0.5',
+    music: 'bg-[#ce82ff]/20 text-[#6b21a8] border-2 border-[#ce82ff] font-black rounded-full px-2.5 py-0.5',
+    education: 'bg-[#1cb0f6]/15 text-[#075985] border-2 border-[#1cb0f6] font-black rounded-full px-2.5 py-0.5',
+    festival: 'bg-[#ff4b4b]/15 text-[#9f1239] border-2 border-[#ff4b4b] font-black rounded-full px-2.5 py-0.5',
+    other: 'bg-slate-100 text-[#4b4b4b] border-2 border-[#e5e5e5] font-black rounded-full px-2.5 py-0.5',
+  },
+  admin: {
+    activeSubTab: 'border-[#58cc02] text-[#2e7d00] font-black',
+    inactiveSubTab: 'border-transparent text-[#777777] hover:text-[#4b4b4b] font-bold',
+    deepScrapeBtn: 'bg-white border-2 border-[#e5e5e5] border-b-4 hover:border-[#58cc02] text-[#4b4b4b] font-black rounded-xl',
+    tableHeader: 'bg-[#f7f7f7] text-[#4b4b4b] border-b-2 border-[#e5e5e5] font-black',
+    tableDivide: 'divide-[#e5e5e5]',
+    tableRowHover: 'hover:bg-[#58cc02]/5',
+    tableText: 'text-[#4b4b4b] font-medium',
+    tableMuted: 'text-[#777777]',
+  },
+};

@@ -15,12 +15,12 @@ import {
   isWcagAaCompliant,
 } from './themes/contrast';
 
-test('Theme Registry - default themes are registered and streamlined to Cosmo Dark and Daylight', () => {
+test('Theme Registry - default themes are registered and include Cosmo, Daylight, and Duo Playful', () => {
   const themes = listThemes();
   const themeNames = themes.map((t) => t.name);
 
-  assert.deepEqual(themeNames, ['cosmo', 'daylight'], 'Themes should be streamlined to cosmo and daylight');
-  assert.equal(DEFAULT_THEME_NAME, 'cosmo', 'Default theme must be cosmo dark');
+  assert.deepEqual(themeNames, ['cosmo', 'daylight', 'duo'], 'Themes should include cosmo, daylight, and duo');
+  assert.equal(DEFAULT_THEME_NAME, 'duo', 'Default theme must be duo playful');
 
   const cosmo = getTheme('cosmo');
   assert.equal(cosmo.mode, 'dark');
@@ -42,6 +42,16 @@ test('Theme Registry - default themes are registered and streamlined to Cosmo Da
   // Title must NOT use text-transparent or gradients that vanish
   assert.ok(!daylight.headerText.includes('text-transparent'), 'Daylight headerText must be solid text-slate-900');
   assert.ok(daylight.headerText.includes('slate-900') || daylight.headerText.includes('slate-950'));
+
+  const duo = getTheme('duo');
+  assert.equal(duo.mode, 'light');
+  assert.equal(duo.displayName, 'Duo Playful');
+  assert.ok(duo.bg.includes('#f7f7f7'));
+  assert.ok(duo.card.includes('border-2'));
+  assert.ok(duo.card.includes('rounded-3xl'));
+  assert.ok(duo.btnMore, 'btnMore token must be defined');
+  assert.ok(duo.todayText, 'todayText token must be defined');
+  assert.ok(!duo.headerText.includes('text-transparent'), 'Duo headerText must be solid and readable');
 });
 
 test('Theme Registry - dynamic registration of custom themes', () => {
@@ -124,6 +134,7 @@ test('Theme Registry - dynamic registration of custom themes', () => {
 test('Theme Resolution - handles URL queries, storage, and fallback safely', () => {
   assert.equal(resolveThemeName('cosmo'), 'cosmo');
   assert.equal(resolveThemeName('daylight'), 'daylight');
+  assert.equal(resolveThemeName('duo'), 'duo');
   assert.equal(resolveThemeName('unknown-theme'), DEFAULT_THEME_NAME);
   assert.equal(resolveThemeName(undefined), DEFAULT_THEME_NAME);
   assert.equal(resolveThemeName(null), DEFAULT_THEME_NAME);

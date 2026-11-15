@@ -1,14 +1,15 @@
 import type { ThemeTokens, ThemeName } from './types';
-import { cosmoTheme, daylightTheme } from './definitions';
+import { cosmoTheme, daylightTheme, duoTheme } from './definitions';
 
-export const DEFAULT_THEME_NAME: ThemeName = 'cosmo';
+export const DEFAULT_THEME_NAME: ThemeName = 'duo';
 
 const registry = new Map<string, ThemeTokens>();
 
-// Register core streamlined themes: Cosmo Dark & Daylight (Bright Clean)
+// Register core streamlined themes: Cosmo Dark, Daylight, & Duo Playful
 function initDefaults() {
   registry.set(cosmoTheme.name, cosmoTheme);
   registry.set(daylightTheme.name, daylightTheme);
+  registry.set(duoTheme.name, duoTheme);
 }
 
 initDefaults();

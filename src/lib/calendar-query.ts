@@ -291,15 +291,16 @@ export type CalendarThemeName = 'cosmo' | 'daylight' | (string & {});
 export const VALID_THEMES: readonly CalendarThemeName[] = [
   'cosmo',
   'daylight',
+  'duo',
 ] as const;
 
-export const DEFAULT_CALENDAR_THEME: CalendarThemeName = 'cosmo';
+export const DEFAULT_CALENDAR_THEME: CalendarThemeName = 'duo';
 
 /**
- * Resolves the active calendar theme name, defaulting to 'cosmo' if undefined or invalid.
+ * Resolves the active calendar theme name, defaulting to 'duo' if undefined or invalid.
  */
 export function resolveCalendarTheme(savedTheme?: string | null): CalendarThemeName {
-  if (savedTheme === 'daylight' || savedTheme === 'cosmo') {
+  if (savedTheme === 'daylight' || savedTheme === 'cosmo' || savedTheme === 'duo') {
     return savedTheme;
   }
   if (savedTheme === 'bubblegum' || savedTheme === 'jungle' || savedTheme === 'sunshine' || savedTheme === 'ocean') {

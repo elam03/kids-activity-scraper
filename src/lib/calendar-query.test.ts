@@ -243,23 +243,24 @@ test('getMonthDayNumberClasses prioritizes today highlight and resolves theme co
   assert.match(getMonthDayNumberClasses(false, null), /text-slate-/);
 });
 
-test('DEFAULT_CALENDAR_THEME defaults to cosmo', () => {
-  assert.equal(DEFAULT_CALENDAR_THEME, 'cosmo');
+test('DEFAULT_CALENDAR_THEME defaults to duo', () => {
+  assert.equal(DEFAULT_CALENDAR_THEME, 'duo');
 });
 
-test('resolveCalendarTheme resolves valid theme names and defaults to cosmo', () => {
+test('resolveCalendarTheme resolves valid theme names and defaults to duo', () => {
   assert.equal(resolveCalendarTheme('daylight'), 'daylight');
   assert.equal(resolveCalendarTheme('cosmo'), 'cosmo');
+  assert.equal(resolveCalendarTheme('duo'), 'duo');
 
   // Maps legacy light themes to daylight
   assert.equal(resolveCalendarTheme('bubblegum'), 'daylight');
   assert.equal(resolveCalendarTheme('jungle'), 'daylight');
 
-  // Falls back to cosmo for null, undefined, empty, or unknown strings
-  assert.equal(resolveCalendarTheme(null), 'cosmo');
-  assert.equal(resolveCalendarTheme(undefined), 'cosmo');
-  assert.equal(resolveCalendarTheme(''), 'cosmo');
-  assert.equal(resolveCalendarTheme('unknown-theme'), 'cosmo');
+  // Falls back to duo for null, undefined, empty, or unknown strings
+  assert.equal(resolveCalendarTheme(null), 'duo');
+  assert.equal(resolveCalendarTheme(undefined), 'duo');
+  assert.equal(resolveCalendarTheme(''), 'duo');
+  assert.equal(resolveCalendarTheme('unknown-theme'), 'duo');
 });
 
 
